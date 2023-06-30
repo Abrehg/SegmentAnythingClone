@@ -3,7 +3,7 @@ import optuna
 from tensorflow import keras as keras
 from keras import layers as tfl
 
-encLayers = 15
+encLayers = 25
 NNLayers = 3
 units = 10
 
@@ -14,7 +14,7 @@ def feedForwardNN(baseInput):
     return X
 
 def encoderLayer(input):
-    X = tfl.MultiHeadAttention(num_heads= 2, )(input)
+    X = tfl.MultiHeadAttention(num_heads= 16)(input)
     X = tfl.Add()([X, input])
     input2 = tfl.LayerNormalization()(X)
     X = feedForwardNN(X)

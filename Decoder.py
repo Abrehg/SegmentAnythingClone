@@ -3,7 +3,7 @@ import optuna
 from tensorflow import keras as keras
 from keras import layers as tfl
 
-decodeLayers = 5
+decodeLayers = 7
 
 def decodeLayer(input):
     output = input
