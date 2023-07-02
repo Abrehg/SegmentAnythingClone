@@ -14,15 +14,36 @@ def formatImg(filePath):
     #split into 16x16 patches
     #first figure out if the dimensions are divisible by 16
     dims = tf.shape(tensor).numpy()
+    i = 0
+    j = 0
     if dims[0] % 16 != 0:
-        for i in range(0, 30):
+        while i < 30:
             if (dims[0]+i) % 16 != 0:
                 break
+            i = i + 1
     if dims[1] % 16 != 0:
-        for j in range(0, 30):
+        while j < 30:
             if (dims[1]+j) % 16 != 0:
                 break
-    output = tensor
+            j = j + 1
+
+    #Then make an array of 16x16 patches
+    len = dims[0]+i
+    wid = dims[1]+j
+    tensor = tf.image.resize_with_pad(tensor, len, wid)
+    print(tf.shape(tensor))
+    patches = np.zeros((len,wid))
+    k = 0
+    ctr = 0
+    while k * 16 < len:
+        while ctr * 16 < wid:
+            #problem with assignment
+            patches[k, ctr] = tf.image.crop_to_bounding_box(tensor, k * 16, ctr * 16, 16, 16)
+            ctr = ctr + 1
+        k = k + 1
+    
+    output = patches
     return output
 
 out = formatImg("/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Semantic Segmentation/images/vedioDataCollection_July2019_Kent0001.png")
+print(out)
