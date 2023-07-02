@@ -37,11 +37,11 @@ def formatImg(filePath):
     ctr = 0
     while k * 16 < len:
         while ctr * 16 < wid:
-            #problem with assignment
+            #problem with assignment, maybe instantiate with 1D tensor
             patches[k, ctr] = tf.image.crop_to_bounding_box(tensor, k * 16, ctr * 16, 16, 16)
             ctr = ctr + 1
         k = k + 1
-    
+
     output = patches
     return output
 
