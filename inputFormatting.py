@@ -18,12 +18,12 @@ def formatImg(filePath):
     j = 0
     if dims[0] % 16 != 0:
         while i < 30:
-            if (dims[0]+i) % 16 != 0:
+            if (dims[0]+i) % 16 == 0:
                 break
             i = i + 1
     if dims[1] % 16 != 0:
         while j < 30:
-            if (dims[1]+j) % 16 != 0:
+            if (dims[1]+j) % 16 == 0:
                 break
             j = j + 1
 
@@ -32,15 +32,22 @@ def formatImg(filePath):
     wid = dims[1]+j
     tensor = tf.image.resize_with_pad(tensor, len, wid)
     print(tf.shape(tensor))
-    patches = np.zeros((len,wid))
+    patches = [[]]
     k = 0
     ctr = 0
     while k * 16 < len:
+        patches.append(tf.image.crop_to_bounding_box(tensor, k * 16, ctr * 16, 16, 16))
+        ctr = ctr + 1
         while ctr * 16 < wid:
-            #problem with assignment, maybe instantiate with 1D tensor
-            patches[k, ctr] = tf.image.crop_to_bounding_box(tensor, k * 16, ctr * 16, 16, 16)
+            print(f"{k*16},{ctr*16}")
+            patches[k].append(tf.image.crop_to_bounding_box(tensor, k * 16, ctr * 16, 16, 16))
+            #AttributeError: 'tensorflow.python.framework.ops.EagerTensor' object has no attribute 'append' 
+            #doesn't make sense since all values are EagerTensors and it still works till 16,32
             ctr = ctr + 1
+        ctr = 0
         k = k + 1
+
+    print(f"{patches.len()} x {patches[1].len()}")
 
     output = patches
     return output
