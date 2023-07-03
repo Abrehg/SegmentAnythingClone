@@ -5,6 +5,8 @@ from tensorflow import keras as keras
 from keras import layers as tfl
 import numpy as np
 
+percentRemove = 75
+
 def formatImg(filePath):
     #loads in image from filepath
     img = tf.io.read_file(filePath)
@@ -42,12 +44,16 @@ def formatImg(filePath):
             print(f"{k*16},{ctr*16}")
             patches[k].append(tf.image.crop_to_bounding_box(tensor, k * 16, ctr * 16, 16, 16))
             #AttributeError: 'tensorflow.python.framework.ops.EagerTensor' object has no attribute 'append' 
-            #doesn't make sense since all values are EagerTensors and it still works till 16,32
+            #doesn't make sense since all values are EagerTensors and it still works till 16,32 after fully completing one row
             ctr = ctr + 1
         ctr = 0
         k = k + 1
 
     print(f"{patches.len()} x {patches[1].len()}")
+
+    #produce encoding for each part of the image
+
+    #use np.random.rand() function to create a matrix of random values and find all values above a certain percentage (percentRemove variable)
 
     output = patches
     return output
