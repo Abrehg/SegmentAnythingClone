@@ -7,6 +7,7 @@ import numpy as np
 
 percentRemove = 75
 
+#takes in a string (filePath) that has a filepath to an image of your choosing in order to create an embedding of the image
 def formatImg(filePath):
     #loads in image from filepath
     img = tf.io.read_file(filePath)
@@ -38,11 +39,16 @@ def formatImg(filePath):
     k = 0
     ctr = 0
     while k * 16 < len:
-        patches.append(tf.image.crop_to_bounding_box(tensor, k * 16, ctr * 16, 16, 16))
+        patch = tf.image.crop_to_bounding_box(tensor, k * 16, ctr * 16, 16, 16)
+        print(f"{k*16},{ctr*16}")
+        patches.append(patch)
+        print(type(patch))
         ctr = ctr + 1
         while ctr * 16 < wid:
             print(f"{k*16},{ctr*16}")
-            patches[k].append(tf.image.crop_to_bounding_box(tensor, k * 16, ctr * 16, 16, 16))
+            patch = tf.image.crop_to_bounding_box(tensor, k * 16, ctr * 16, 16, 16)
+            print(type(patch))
+            patches[k].append(patch)
             #AttributeError: 'tensorflow.python.framework.ops.EagerTensor' object has no attribute 'append' 
             #doesn't make sense since all values are EagerTensors and it still works till 16,32 after fully completing one row
             ctr = ctr + 1
@@ -58,5 +64,7 @@ def formatImg(filePath):
     output = patches
     return output
 
-out = formatImg("/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Semantic Segmentation/images/vedioDataCollection_July2019_Kent0001.png")
-print(out)
+#out = formatImg("/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Semantic Segmentation/images/vedioDataCollection_July2019_Kent0001.png")
+#out = formatImg("/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/ADE20K/ADE_frame_00000007/X/ADE_frame_00000007.jpg")
+
+#print(out)
