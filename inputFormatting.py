@@ -70,8 +70,6 @@ def formatImg(filePath):
         print(i)
         encodings[i][:] = Encoder.predict(patches[i][:][:][:][:])
 
-    print(encodings[1][1])
-
     #use np.random.rand() function to create a matrix of random values and find all values above a certain percentage (percentRemove variable)
 
     output = patches
