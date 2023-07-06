@@ -11,5 +11,3 @@ X = tfl.Flatten()(X)
 X = tfl.Dense(512, 'relu')(X)
 Y = tfl.Dense(1024, 'relu')(X)
 EncGenerator = keras.Model(inputs = Inputs, outputs = Y)
-
-print(EncGenerator.summary())

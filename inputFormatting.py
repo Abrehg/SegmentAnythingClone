@@ -4,6 +4,7 @@ import optuna
 from tensorflow import keras as keras
 from keras import layers as tfl
 import numpy as np
+from encGenerator import EncGenerator
 
 percentRemove = 75
 
@@ -51,9 +52,18 @@ def formatImg(filePath):
         ctr = 0
         k = k + 1
     patches = np.delete(patches, 1, axis = 0)
-    print(patches.shape)
 
-    #produce encoding for each part of the image
+    #produce encoding for each part of the image (stored in encodings array)
+
+    dim = np.shape(patches)
+    horiz = dim[0]
+    vert = dim[1]
+
+    encodings = np.ndarray((horiz, vert,1024))
+
+    for i in range(0, horiz):
+        print(i)
+        encodings[i][:] = EncGenerator.predict(patches[i][:][:][:][:])
 
     """
     Keras implementation
