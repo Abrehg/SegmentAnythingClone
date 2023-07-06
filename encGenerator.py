@@ -4,24 +4,29 @@ import optuna
 from tensorflow import keras as keras
 from keras import layers as tfl
 import numpy as np
-import tensorflow_datasets as tfds
+from tensorflow.keras.datasets import cifar100
+from EncoderModel import EncGen
 
-Inputs = keras.Input(shape=(16,16,3))
-X = tfl.Conv2D(4, (2,2))(Inputs)
-X = tfl.Flatten()(X)
-X = tfl.Dense(512, 'relu')(X)
-Y = tfl.Dense(1024, 'relu')(X)
-EncGenerator = keras.Model(inputs = Inputs, outputs = Y)
 
-In = keras.Input(shape=(32, 32, 3))
-X = tfl.Conv2D(3, (2,2))(In)
-X = EncGenerator.predict(X)
-Out = tfl.Dense(100,activation='softmax')(X)
-FullModel = keras.Model(inputs=In, outputs=Out)
-print(FullModel.summary())
+(train_images, train_labels), (test_images, test_labels) = cifar100.load_data()
+num_classes = 100
+train_labels = tf.keras.utils.to_categorical(train_labels, num_classes)
+test_labels = tf.keras.utils.to_categorical(test_labels, num_classes)
 
-FullModel.compile(optimizer = 'adam', loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True), metrics = ['accuracy'])
+input_shape = (32, 32, 3)
+input = tf.keras.Input(shape=input_shape)
 
-(ds_train, ds_test) = tfds.load('cifar100', split=['train','test'], shuffle_files=True)
+x = tf.keras.layers.Conv2D(3, (2, 2), activation='relu', strides=(2, 2))(input)
+custom_output = EncGen((16, 16, 3))(x)
 
-FullModel.fit(ds_train, epochs=20, validation_data=ds_test,)
+x = tf.keras.layers.Dense(100, activation='relu')(custom_output)
+output = tf.keras.layers.Dense(num_classes, activation='softmax')(x)
+
+FullModel = tf.keras.Model(inputs=input, outputs=output)
+
+FullModel.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+FullModel.fit(train_images, train_labels, batch_size=32, epochs=100, validation_data=(test_images, test_labels))
+
+custom_model_path = '/Users/adityaasuratkal/Downloads/GitHub/SegmentAnythingClone/custom_model_weights.h5'
+FullModel.layers[2].save_weights(custom_model_path)

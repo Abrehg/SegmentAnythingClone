@@ -4,9 +4,14 @@ import optuna
 from tensorflow import keras as keras
 from keras import layers as tfl
 import numpy as np
-from encGenerator import EncGenerator
+from EncoderModel import EncGen
+
 
 percentRemove = 75
+custom_model_path = '/Users/adityaasuratkal/Downloads/GitHub/SegmentAnythingClone/custom_model_weights.h5'
+Encoder = EncGen((16, 16, 3))
+Encoder.load_weights(custom_model_path)
+
 
 #takes in a string (filePath) that has a filepath to an image of your choosing in order to create an embedding of the image
 def formatImg(filePath):
@@ -63,28 +68,9 @@ def formatImg(filePath):
 
     for i in range(0, horiz):
         print(i)
-        encodings[i][:] = EncGenerator.predict(patches[i][:][:][:][:])
+        encodings[i][:] = Encoder.predict(patches[i][:][:][:][:])
 
     print(encodings[1][1])
-
-    """
-    Keras implementation
-    class PatchEncoder(layers.Layer):
-        def __init__(self, num_patches, projection_dim):
-            super().__init__()
-            self.num_patches = num_patches
-            self.projection = layers.Dense(units=projection_dim)
-            self.position_embedding = layers.Embedding(
-                input_dim=num_patches, output_dim=projection_dim
-            )
-
-        def call(self, patch):
-            positions = tf.range(start=0, limit=self.num_patches, delta=1)
-            encoded = self.projection(patch) + self.position_embedding(positions)
-            return encoded
-    
-    encoded_patches = PatchEncoder(num_patches, projection_dim)(patches)
-    """
 
     #use np.random.rand() function to create a matrix of random values and find all values above a certain percentage (percentRemove variable)
 
