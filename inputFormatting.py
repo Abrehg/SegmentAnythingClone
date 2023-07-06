@@ -34,28 +34,24 @@ def formatImg(filePath):
     len = dims[0]+i
     wid = dims[1]+j
     tensor = tf.image.resize_with_pad(tensor, len, wid)
-    print(tf.shape(tensor))
-    patches = [[]]
+    patches = np.ndarray((1,int(wid/16),16,16,3))
     k = 0
     ctr = 0
+    
     while k * 16 < len:
-        patch = tf.image.crop_to_bounding_box(tensor, k * 16, ctr * 16, 16, 16)
-        print(f"{k*16},{ctr*16}")
-        patches.append(patch)
-        print(type(patch))
-        ctr = ctr + 1
+        patchTemp = np.ndarray((1,16,16,3))
         while ctr * 16 < wid:
-            print(f"{k*16},{ctr*16}")
-            patch = tf.image.crop_to_bounding_box(tensor, k * 16, ctr * 16, 16, 16)
-            print(type(patch))
-            patches[k].append(patch)
-            #AttributeError: 'tensorflow.python.framework.ops.EagerTensor' object has no attribute 'append' 
-            #doesn't make sense since all values are EagerTensors and it still works till 16,32 after fully completing one row
+            patch = tf.image.crop_to_bounding_box(tensor, k * 16, ctr * 16, 16, 16).numpy()
+            patch = np.expand_dims(patch, axis = 0)
+            patchTemp = np.append(patchTemp,patch, axis = 0)
             ctr = ctr + 1
+        patchTemp = np.delete(patchTemp, 1, axis = 0)
+        patchTemp = np.expand_dims(patchTemp, axis = 0)
+        patches = np.append(patches,patchTemp, axis = 0)
         ctr = 0
         k = k + 1
-
-    print(f"{patches.len()} x {patches[1].len()}")
+    patches = np.delete(patches, 1, axis = 0)
+    print(patches.shape)
 
     #produce encoding for each part of the image
 
@@ -64,7 +60,5 @@ def formatImg(filePath):
     output = patches
     return output
 
-#out = formatImg("/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Semantic Segmentation/images/vedioDataCollection_July2019_Kent0001.png")
+out = formatImg("/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Semantic Segmentation/images/vedioDataCollection_July2019_Kent0001.png")
 #out = formatImg("/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/ADE20K/ADE_frame_00000007/X/ADE_frame_00000007.jpg")
-
-#print(out)
