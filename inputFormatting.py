@@ -65,6 +65,8 @@ def formatImg(filePath):
         print(i)
         encodings[i][:] = EncGenerator.predict(patches[i][:][:][:][:])
 
+    print(encodings[1][1])
+
     """
     Keras implementation
     class PatchEncoder(layers.Layer):
