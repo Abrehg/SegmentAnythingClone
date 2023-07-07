@@ -97,6 +97,3 @@ def formatImg(filePath):
     MAEpositions = np.delete(MAEpositions, 1, axis = 0)
 
     return encodings, MAEencodings, MAEpositions
-
-out = formatImg("/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Semantic Segmentation/images/vedioDataCollection_July2019_Kent0001.png")
-#out = formatImg("/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/ADE20K/ADE_frame_00000007/X/ADE_frame_00000007.jpg")
