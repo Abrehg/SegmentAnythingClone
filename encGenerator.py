@@ -1,10 +1,10 @@
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import optuna
-from tensorflow import keras as keras
+from tensorflow import keras
 from keras import layers as tfl
 import numpy as np
-from tensorflow.keras.datasets import cifar100
+from keras.datasets import cifar100
 from EncoderModel import EncGen
 
 
