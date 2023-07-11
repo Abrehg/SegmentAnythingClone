@@ -8,14 +8,6 @@ encLayers = 30
 NNLayers = 10
 units = 1024
 
-#imgFilePath = "Test"
-imgFilePath = "/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Semantic Segmentation/images/vedioDataCollection_July2019_Kent0001.png"
-#imgFilePath = "/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/ADEChallengeData2016/images/training/ADE_train_00000001.jpg"
-
-fullEncodings, MAEencodings = formatImg(imgFilePath)
-
-input_data = tf.expand_dims(fullEncodings, axis=0)
-
 def feedForwardNN(baseInput):
     X = baseInput
     for k in range(0, NNLayers):
@@ -41,8 +33,3 @@ def encoder(input):
         print(f"Layer {i}")
         X = encoderLayer(X)
     return X
-
-out = encoder(input_data)
-fullModel = keras.Model(inputs = input_data, outputs = out)
-print(fullModel.summary())
-print(out)

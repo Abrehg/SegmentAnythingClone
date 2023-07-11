@@ -91,7 +91,8 @@ def formatImg(filePath):
                 MAEencodings = np.append(MAEencodings, Encoding, axis = 0)
 
     MAEencodings = np.delete(MAEencodings, 1, axis = 0)
-
+    MAEencodings = tf.expand_dims(MAEencodings, axis=0)
+    
     #turning the main embeddings into a (Lx1024) array
     finalEmbeddings = np.ndarray((1, 1024))
 
@@ -102,5 +103,6 @@ def formatImg(filePath):
             finalEmbeddings = np.append(finalEmbeddings, Encoding, axis = 0)
 
     finalEmbeddings = np.delete(finalEmbeddings, 1, axis = 0)
+    finalEmbeddings = tf.expand_dims(finalEmbeddings, axis=0)
 
     return finalEmbeddings, MAEencodings
