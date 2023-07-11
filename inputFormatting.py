@@ -68,7 +68,7 @@ def formatImg(filePath):
     print(vert)
     print(horiz)
 
-    encodings = np.ndarray((vert, horiz,1024))
+    encodings = np.ndarray((vert, horiz, 1024))
 
     for i in range(0, vert):
         print(i)

@@ -1,26 +1,23 @@
 #Courtesy of chatgpt
 import tensorflow as tf
 import numpy as np
+import math
 
-#Calculates the angles based on the vertical and horizontal position
-def get_angles(positions, i, d_model):
-    angles = 1 / np.power(10000, (2 * (i//2)) / np.float32(d_model))
-    return positions * angles
-
-#Generates the positional encodings based on angles made in get_angles
-def positional_encoding_2D(width, length, d_model):
-    position_dims = d_model // 2
-    width_enc = get_angles(np.arange(width)[:, np.newaxis], np.arange(position_dims)[np.newaxis, :], position_dims)
-    length_enc = get_angles(np.arange(length)[:, np.newaxis], np.arange(position_dims)[np.newaxis, :], position_dims)
-
-    # Apply sine and cosine to positional encodings
-    pos_encoding = np.concatenate([np.sin(width_enc), np.cos(width_enc), np.sin(length_enc), np.cos(length_enc)], axis=-1)
-    pos_encoding = pos_encoding[np.newaxis, ...]
-    
-    return tf.cast(pos_encoding, dtype=tf.float32)
+def positional_encoding_2D(i, j, d_model):
+    encoding = []
+    for k in range(d_model):
+        if k % 2 == 0:
+            encoding.append(math.sin(i / (10000 ** (2 * k / d_model))) + math.sin(j / (10000 ** (2 * k / d_model))))
+        else:
+            encoding.append(math.cos(i / (10000 ** ((2 * k + 1) / d_model))) + math.cos(j / (10000 ** ((2 * k + 1) / d_model))))
+    return encoding
 
 #Adds the encoding to the original image embeddings
 def add_positional_encoding(embeddings):
-    num_patches, d_model = embeddings.shape[1], embeddings.shape[2]
-    position_encoding = positional_encoding_2D(num_patches, d_model)
+    width, length, d_model= embeddings.shape[0], embeddings.shape[1], embeddings.shape[2]
+    finalEmbedding = np.ndarray((width, length, d_model))
+    for i in range(0, width):
+        for j in range(0, length):
+            position_encoding = positional_encoding_2D(i, j, d_model)
+            finalEmbedding[i][j] = position_encoding + embeddings[i][j]
     return embeddings + position_encoding
