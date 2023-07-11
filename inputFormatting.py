@@ -5,7 +5,7 @@ from tensorflow import keras as keras
 from keras import layers as tfl
 import numpy as np
 from EncoderModel import EncGen
-
+from tf_encodings import add_positional_encoding
 
 percentRemove = 75
 custom_model_path = '/Users/adityaasuratkal/Downloads/GitHub/SegmentAnythingClone/custom_model_weights.h5'
@@ -74,13 +74,16 @@ def formatImg(filePath):
         print(i)
         encodings[i][:] = Encoder.predict(patches[i][:][:][:][:])
 
+    #Add positional encodings to the image embeddings (see tf_encodings.py to find out how it works)
+    embeddings = add_positional_encoding(encodings)
+
     #use np.random.rand() function to create a matrix of random values and find all values above a certain percentage (percentRemove variable)
     mask = np.random.rand(vert,horiz,1)
     mask = mask > (percentRemove/100)
-    maskedEncodings = np.multiply(encodings, mask)
+    maskedEncodings = np.multiply(embeddings, mask)
 
+    #Making a vector of unmasked embeddings
     MAEencodings = np.ndarray((1, 1024))
-    MAEpositions = np.ndarray((1, 2))
 
     zeroVector = np.zeros(1024)
 
@@ -88,12 +91,20 @@ def formatImg(filePath):
     for i in range(0, dimen[0]):
         for j in range(0, dimen[1]):
             if not (np.array_equal(maskedEncodings[i][j][:], zeroVector)):
-                positions = [[i, j]]
                 Encoding = np.expand_dims(maskedEncodings[i][j], axis = 0)
                 MAEencodings = np.append(MAEencodings, Encoding, axis = 0)
-                MAEpositions = np.append(MAEpositions,positions, axis = 0)
 
     MAEencodings = np.delete(MAEencodings, 1, axis = 0)
-    MAEpositions = np.delete(MAEpositions, 1, axis = 0)
 
-    return encodings, MAEencodings, MAEpositions
+    #turning the main embeddings into a (Lx1024) array
+    finalEmbeddings = np.ndarray((1, 1024))
+
+    dimen = np.shape(embeddings)
+    for i in range(0, dimen[0]):
+        for j in range(0, dimen[1]):
+            Encoding = np.expand_dims(embeddings[i][j], axis = 0)
+            finalEmbeddings = np.append(finalEmbeddings, Encoding, axis = 0)
+
+    finalEmbeddings = np.delete(finalEmbeddings, 1, axis = 0)
+
+    return finalEmbeddings, MAEencodings
