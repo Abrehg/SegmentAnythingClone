@@ -65,13 +65,9 @@ def formatImg(filePath):
     vert = dim[0]
     horiz = dim[1]
 
-    print(vert)
-    print(horiz)
-
     encodings = np.ndarray((vert, horiz, 1024))
 
     for i in range(0, vert):
-        print(i)
         encodings[i][:] = Encoder.predict(patches[i][:][:][:][:])
 
     #Add positional encodings to the image embeddings (see tf_encodings.py to find out how it works)
