@@ -3,7 +3,7 @@ import optuna
 from tensorflow import keras as keras
 from keras import layers as tfl
 from inputFormatting import formatImg
-from Encoder import encoder
+from FullEncoder import encoder
 from formatText import formatText
 from decodeFormat import decodeFormat
 from Decoder import decoder
