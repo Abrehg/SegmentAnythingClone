@@ -10,7 +10,7 @@ imgFilePath = "/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Sem
 #imgFilePath = "/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/ADEChallengeData2016/images/training/ADE_train_00000001.jpg"
 
 fullEncodings, MAEencodings = formatImg(imgFilePath)
-X = encoder(MAEencodings)
+enc = encoder(MAEencodings)
 
 decodeLayers = 7
 

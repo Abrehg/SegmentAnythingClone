@@ -30,6 +30,5 @@ def encoderLayer(input):
 def encoder(input):
     X = tf.cast(input, dtype=tf.float32)
     for i in range(0, encLayers):
-        print(f"Layer {i}")
         X = encoderLayer(X)
     return X
