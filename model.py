@@ -3,34 +3,33 @@ import optuna
 from tensorflow import keras as keras
 from keras import layers as tfl
 from inputFormatting import formatImg
+from inputFormatting import formatTensorFromPath
 from FullEncoder import encoder
 from formatText import formatText
 from decodeFormat import decodeFormat
 from Decoder import decoder
 
-imgFilePath = "Test"
-text = keras.Input(shape=(None))
+#text = keras.Input(shape=(None))
+#finished encoder portion of model
+#possibly figure out how to train MAE
+#start with implementing CLIP
+#Then figure out how to decode into a full workable mask with lightweight decoder
 
-#potential input for model
-#if used, delete the first two lines in formatImg function (inputFormatting.py)
-img = tf.io.read_file(imgFilePath)
-tensor = tf.io.decode_image(img, channels=3, dtype=tf.dtypes.uint8)
-
+image = tfl.InputLayer((None, None, None, 3))
 #input encoding of image (Transformer encoder + MAE)
-fullEncodings, MAEencodings, MAEpositions = formatImg(imgFilePath)
+fullEncodings, MAEencodings = formatImg(image)
 X = encoder(MAEencodings)
 #input encoding of text (CLIP)
-Q = formatText(text)
+#Q = formatText(text)
 #decode and return output mask (Transformer decoder)
-X = decodeFormat(X, Q)
+X = decodeFormat(X)
 mask = decoder(X)
-model = keras.Model(inputs = [imgFilePath, text], outputs = mask)
-model.summary()
-
+model = keras.Model(inputs = image, outputs = mask)
+print(model.summary())
 
 #imgFilePath = "Test"
 imgFilePath = "/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Semantic Segmentation/images/vedioDataCollection_July2019_Kent0001.png"
 #imgFilePath = "/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/ADEChallengeData2016/images/training/ADE_train_00000001.jpg"
 
-fullEncodings, MAEencodings = formatImg(imgFilePath)
+fullEncodings, MAEencodings = formatImg(formatTensorFromPath(imgFilePath))
 X = encoder(MAEencodings)

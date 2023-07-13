@@ -15,11 +15,8 @@ Encoder.load_weights(custom_model_path)
 
 #takes in a string (filePath) that has a filepath to an image of your choosing in order to create an embedding of the image
 #returns the original encodings, a vector with 1024 dimension encodings for MAE, and a parallel array with the position (vertical, horizontal) of each patch
-def formatImg(filePath):
-    #loads in image from filepath (delete if tensor is already inputted to function)
-    img = tf.io.read_file(filePath)
-    tensor = tf.io.decode_image(img, channels=3, dtype=tf.dtypes.uint8)
-    
+def formatImg(img):
+    tensor = img
     #split into 16x16 patches
     #first figure out if the dimensions are divisible by 16
     dims = tf.shape(tensor).numpy()
@@ -106,3 +103,8 @@ def formatImg(filePath):
     finalEmbeddings = tf.expand_dims(finalEmbeddings, axis=0)
 
     return finalEmbeddings, MAEencodings
+
+def formatTensorFromPath(Filepath):
+    img = tf.io.read_file(Filepath)
+    tensor = tf.io.decode_image(img, channels=3, dtype=tf.dtypes.uint8)
+    return tensor
