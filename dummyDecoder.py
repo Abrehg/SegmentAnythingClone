@@ -11,11 +11,14 @@ unitsMid = 10000
 unitsOut = 1000
 
 def dummyDecoder():
-    model = keras.Sequential()
-    model.add(tfl.Dense(unitsMid, activation='relu', input_shape = (None, None, 1024)))
+    model = keras.models.Sequential([
+        tfl.Input(shape=(None, 1024)),  
+        tfl.GlobalAveragePooling1D()
+    ])
     for i in range(0, NNLayers):
         model.add(tfl.Dense(unitsMid, activation='relu'))
     model.add(tfl.Dense(unitsOut, activation='softmax'))
+    
     return model
 
 
@@ -25,4 +28,5 @@ imgFilePath = "/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Sem
 fullEncodings, MAEencodings = formatImg(formatTensorFromPath(imgFilePath))
 X = encoder(fullEncodings)
 decoderOut = dummyDecoder()(X)
+print(tf.shape(X))
 print(tf.shape(decoderOut))
