@@ -19,7 +19,7 @@ from Decoder import decoder
 image = keras.Input((None, None, None, 3))
 #input encoding of image (Transformer encoder + MAE)
 fullEncodings, MAEencodings = formatImg(image)
-X = encoder(MAEencodings)
+X = encoder()(MAEencodings)
 #input encoding of text (CLIP)
 #Q = formatText(text)
 #decode and return output mask (Transformer decoder)
@@ -33,4 +33,4 @@ imgFilePath = "/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Sem
 #imgFilePath = "/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/ADEChallengeData2016/images/training/ADE_train_00000001.jpg"
 
 fullEncodings, MAEencodings = formatImg(formatTensorFromPath(imgFilePath))
-X = encoder(MAEencodings)
+X = encoder()(MAEencodings)

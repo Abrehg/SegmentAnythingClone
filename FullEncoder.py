@@ -4,31 +4,38 @@ from keras import layers as tfl
 import numpy as np
 from inputFormatting import formatImg
 
-encLayers = 30
-NNLayers = 10
-units = 1024
+def encoder():
+    encLayers = 6
+    NNLayers = 10
+    units = 1024
 
-def feedForwardNN(baseInput):
-    X = baseInput
-    for k in range(0, NNLayers):
-        X = tfl.Dense(activation= 'relu', units=units)(X)
-    return X
+    def feedForwardNN(baseInput):
+        X = baseInput
+        for k in range(0, NNLayers):
+            X = tfl.Dense(activation='relu', units=units)(X)
+        return X
 
-def encoderLayer(input):
-    X = tfl.MultiHeadAttention(num_heads = 16, key_dim = 1024, dropout=0.3)(input, input)
-    X = tf.cast(X, dtype=tf.float32)
-    input = tf.cast(input, dtype=tf.float32)
-    X = np.add(X.numpy(), input.numpy())
-    input2 = tfl.LayerNormalization(axis = 1)(X)
-    X = feedForwardNN(input2)
-    X = tf.cast(X, dtype=tf.float32)
-    input2 = tf.cast(input2, dtype=tf.float32)
-    X = np.add(X.numpy(), input2.numpy())
-    output = tfl.LayerNormalization(axis = 1)(X)
-    return output
+    def encoderLayer(input):
+        X = tfl.MultiHeadAttention(num_heads=16, key_dim=1024, dropout=0.3)(input, input)
+        X = tf.cast(X, dtype=tf.float32)
+        input = tf.cast(input, dtype=tf.float32)
+        X = tf.add(X, input)
+        input2 = tfl.LayerNormalization()(X)
+        X = feedForwardNN(input2)
+        X = tf.cast(X, dtype=tf.float32)
+        input2 = tf.cast(input2, dtype=tf.float32)
+        X = tf.add(X, input2)
+        output = tfl.LayerNormalization()(X)
+        return output
 
-def encoder(input):
-    X = tf.cast(input, dtype=tf.float32)
-    for i in range(0, encLayers):
-        X = encoderLayer(X)
-    return X
+    def encode(input):
+        X = tf.cast(input, dtype=tf.float32)
+        for i in range(0, encLayers):
+            X = encoderLayer(X)
+        return X
+
+    baseInput = keras.Input(shape=(None, 1024))
+    output = encode(baseInput)
+    model = keras.Model(inputs=baseInput, outputs=output)
+    
+    return model

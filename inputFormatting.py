@@ -4,11 +4,11 @@ import optuna
 from tensorflow import keras as keras
 from keras import layers as tfl
 import numpy as np
-from EncoderModel import EncGen
+from patchModel import EncGen
+from trainPatches import custom_model_path
 from tf_encodings import add_positional_encoding
 
 percentRemove = 75
-custom_model_path = '/Users/adityaasuratkal/Downloads/GitHub/SegmentAnythingClone/custom_model_weights.h5'
 Encoder = EncGen((16, 16, 3))
 Encoder.load_weights(custom_model_path)
 
