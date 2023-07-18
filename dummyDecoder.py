@@ -2,9 +2,9 @@ import tensorflow as tf
 from tensorflow import keras
 from keras import layers as tfl
 import numpy as np
-from inputFormatting import formatImg
-from inputFormatting import formatTensorFromPath
 from FullEncoder import encoder
+from processImageNet import main
+import time
 
 NNLayers = 4
 unitsMid = 100
@@ -26,16 +26,28 @@ output = tfl.Dense(unitsOut, activation='softmax')(x)
 combined_model = keras.Model(inputs=encoder_model.input, outputs=output)
 
 # Compile the model
-combined_model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
+combined_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Print the model summary
-combined_model.summary()
+#combined_model.summary()
 
-#Preprocessing
-#imgFilePath = "/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Semantic Segmentation/images/vedioDataCollection_July2019_Kent0001.png"
-#tensor = formatTensorFromPath(imgFilePath)
-#fullEncodings, MAEencodings = formatImg(tensor)
+#uncomment this loop to find out what layers to keep
+#for i, layer in enumerate(combined_model.layers):
+#    print("Layer {}: {}".format(i, layer.name))
+
+start_time = time.time()
+#prepare imagenet dataset for training
+train_dataset, val_dataset, test_dataset = main()
+
+end_time = time.time()
+elapsed_time = end_time - start_time
+
+print("Elapsed time: {:.2f} seconds".format(elapsed_time))
+
+combined_dataset = train_dataset.concatenate(val_dataset).concatenate(test_dataset)
+
+combined_model.fit(combined_dataset)
 
 #Save weights
 #custom_model_path = '/Users/adityaasuratkal/Downloads/GitHub/SegmentAnythingClone/encoder_weights.h5'
-#combined_model.layers[0:116].save_weights(custom_model_path)
+#combined_model.layers[0:71].save_weights(custom_model_path)
