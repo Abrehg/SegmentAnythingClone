@@ -5,8 +5,8 @@ import numpy as np
 from inputFormatting import formatImg
 
 def encoder():
-    encLayers = 6
-    NNLayers = 10
+    encLayers = 5
+    NNLayers = 5
     units = 1024
 
     def feedForwardNN(baseInput):
