@@ -5,105 +5,50 @@ from tensorflow import keras as keras
 from keras import layers as tfl
 import numpy as np
 from patchModel import EncGen
-from trainPatches import custom_model_path
 from tf_encodings import add_positional_encoding
 
 percentRemove = 75
 Encoder = EncGen((16, 16, 3))
-Encoder.load_weights(custom_model_path)
+Encoder.load_weights('/Users/adityaasuratkal/Downloads/GitHub/SegmentAnythingClone/patches_weights.h5')
 
-
-#takes in a string (filePath) that has a filepath to an image of your choosing in order to create an embedding of the image
+#takes in a tensor representation of your image in order to create an embedding of the image
 #returns the original encodings, a vector with 1024 dimension encodings for MAE, and a parallel array with the position (vertical, horizontal) of each patch
 def formatImg(img):
-    tensor = img
     #split into 16x16 patches
-    #first figure out if the dimensions are divisible by 16
-    dims = tf.shape(tensor).numpy()
-    i = 0
-    j = 0
-    if dims[0] % 16 != 0:
-        while i < 30:
-            if (dims[0]+i) % 16 == 0:
-                break
-            i = i + 1
-    if dims[1] % 16 != 0:
-        while j < 30:
-            if (dims[1]+j) % 16 == 0:
-                break
-            j = j + 1
+    #first create dimensions that are divisible by 16
+    height, width, _ = img.shape
+    new_height = ((height + 15) // 16) * 16
+    new_width = ((width + 15) // 16) * 16
+    tensor = tf.image.resize_with_pad(img, new_height, new_width)
 
     #Then make an array of 16x16 patches
-    height = dims[0]+i
-    width = dims[1]+j
-
-    tensor = tf.image.resize_with_pad(tensor, height, width)
-    patches = np.ndarray((1,int(width/16),16,16,3))
-    k = 0
-    ctr = 0
-    
-    while k * 16 < height:
-        patchTemp = np.ndarray((1,16,16,3))
-        while ctr * 16 < width:
-            patch = tf.image.crop_to_bounding_box(tensor, k * 16, ctr * 16, 16, 16).numpy()
-            patch = np.expand_dims(patch, axis = 0)
-            patchTemp = np.append(patchTemp,patch, axis = 0)
-            ctr = ctr + 1
-        patchTemp = np.delete(patchTemp, 1, axis = 0)
-        patchTemp = np.expand_dims(patchTemp, axis = 0)
-        patches = np.append(patches,patchTemp, axis = 0)
-        ctr = 0
-        k = k + 1
-    patches = np.delete(patches, 1, axis = 0)
+    patches = tf.image.extract_patches(
+        images=tf.expand_dims(tensor, axis=0),
+        sizes=[1, 16, 16, 1],
+        strides=[1, 16, 16, 1],
+        rates=[1, 1, 1, 1],
+        padding='VALID'
+    )
+    patches = tf.reshape(patches, [-1, 16, 16, 3])
 
     #produce encoding for each part of the image (stored in encodings array)
+    encodings = Encoder.predict(patches)
 
-    dim = np.shape(patches)
-    vert = dim[0]
-    horiz = dim[1]
-
-    encodings = np.ndarray((vert, horiz, 1024))
-
-    for i in range(0, vert):
-        encodings[i][:] = Encoder.predict(patches[i][:][:][:][:])
-
-    #Add positional encodings to the image embeddings (see tf_encodings.py to find out how it works)
+    #Add positional encodings to the image embeddings
+    encodings = tf.reshape(encodings, [(new_height // 16), (new_width // 16), 1024])
     embeddings = add_positional_encoding(encodings)
+    embeddings = tf.reshape(embeddings, [-1, 1024])
+    finalEmbeddings = tf.expand_dims(embeddings, axis=0)
 
-    #use np.random.rand() function to create a matrix of random values and find all values above a certain percentage (percentRemove variable)
-    mask = np.random.rand(vert,horiz,1)
-    mask = mask > (percentRemove/100)
+    # Create a mask to remove a percentage of encodings
+    mask = np.random.rand(((new_height//16)*(new_width//16)),1) > (percentRemove/100)
     maskedEncodings = np.multiply(embeddings, mask)
-
-    #Making a vector of unmasked embeddings
-    MAEencodings = np.ndarray((1, 1024))
-
-    zeroVector = np.zeros(1024)
-
-    dimen = np.shape(maskedEncodings)
-    for i in range(0, dimen[0]):
-        for j in range(0, dimen[1]):
-            if not (np.array_equal(maskedEncodings[i][j][:], zeroVector)):
-                Encoding = np.expand_dims(maskedEncodings[i][j], axis = 0)
-                MAEencodings = np.append(MAEencodings, Encoding, axis = 0)
-
-    MAEencodings = np.delete(MAEencodings, 1, axis = 0)
+    MAEencodings = maskedEncodings[np.any(maskedEncodings != 0, axis=1)]
     MAEencodings = tf.expand_dims(MAEencodings, axis=0)
-    
-    #turning the main embeddings into a (Lx1024) array
-    finalEmbeddings = np.ndarray((1, 1024))
-
-    dimen = np.shape(embeddings)
-    for i in range(0, dimen[0]):
-        for j in range(0, dimen[1]):
-            Encoding = np.expand_dims(embeddings[i][j], axis = 0)
-            finalEmbeddings = np.append(finalEmbeddings, Encoding, axis = 0)
-
-    finalEmbeddings = np.delete(finalEmbeddings, 1, axis = 0)
-    finalEmbeddings = tf.expand_dims(finalEmbeddings, axis=0)
 
     return finalEmbeddings, MAEencodings
 
+#takes filepath as string and turns image into tensor
 def formatTensorFromPath(Filepath):
     img = tf.io.read_file(Filepath)
     tensor = tf.io.decode_image(img, channels=3, dtype=tf.dtypes.uint8)
