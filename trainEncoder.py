@@ -43,7 +43,7 @@ for i, layer in enumerate(combined_model.layers):
 start_time = time.time()
 #Prepare Imagenet dataset for training
 image_data_folder = "/Users/adityaasuratkal/Downloads/ImageNet"
-pickle_dump_folder = "/Users/adityaasuratkal/Downloads/ImageNet"
+pickle_dump_folder = "/Users/adityaasuratkal/Downloads/ImageNet/pickles"
 main(image_data_folder, pickle_dump_folder)
 
 end_time = time.time()
@@ -52,34 +52,55 @@ elapsed_time = end_time - start_time
 print("Elapsed time: {:.2f} seconds".format(elapsed_time))
 """
 """
-#Modify this code to constantly fit the model instead of in processImageNet.py
-def compile_data_from_batches(data_folder, dataset_name):
-    compiled_data = []
-    batch_idx = 0
+batch_idx = 0
+while True:
+    batch_filename = os.path.join(data_folder, f"{'train'}_batch{batch_idx}.pkl")
+    if os.path.exists(batch_filename):
+        with open(filename, 'rb') as file:
+            data = pickle.load(file)
+            embeddings, labels = zip(*data)
+            embeddings = tf.convert_to_tensor(embeddings, dtype=tf.float32)
+            labels = tf.convert_to_tensor(labels, dtype=tf.float32)
+            dataset = tf.data.Dataset.from_tensor_slices((embeddings, labels))
+            dataset = dataset.shuffle(buffer_size=len(data)).batch(batch_size).prefetch(tf.data.AUTOTUNE)
+            combined_model.fit(dataset)
+        batch_idx = batch_idx + 1
+    else:
+        break
+        
+batch_idx = 0
+while True:
+    batch_filename = os.path.join(data_folder, f"{'val'}_batch{batch_idx}.pkl")
+    if os.path.exists(batch_filename):
+        with open(filename, 'rb') as file:
+            data = pickle.load(file)
+            embeddings, labels = zip(*data)
+            embeddings = tf.convert_to_tensor(embeddings, dtype=tf.float32)
+            labels = tf.convert_to_tensor(labels, dtype=tf.float32)
+            dataset = tf.data.Dataset.from_tensor_slices((embeddings, labels))
+            dataset = dataset.shuffle(buffer_size=len(data)).batch(batch_size).prefetch(tf.data.AUTOTUNE)
+            combined_model.fit(dataset)
+        batch_idx = batch_idx + 1
+    else:
+        break
 
-    while True:
-        batch_filename = os.path.join(data_folder, f"{dataset_name}_batch{batch_idx}.pkl")
-        if os.path.exists(batch_filename):
-            with open(batch_filename, 'rb') as file:
-                batch_data = pickle.load(file)
-            compiled_data.extend(batch_data)
-            batch_idx += 1
-        else:
-            break
-
-    compiled_filename = os.path.join(data_folder, f"{dataset_name}_compiled.pkl")
-    with open(compiled_filename, 'wb') as file:
-        pickle.dump(compiled_data, file)
-"""
-"""
-#figure out how to convert pickle to workable data for model
-train_dataset = 0
-val_dataset = 0
-test_dataset = 0
-
-combined_dataset = train_dataset.concatenate(val_dataset).concatenate(test_dataset)
-
-combined_model.fit(combined_dataset)
+""" 
+"""    
+batch_idx = 0
+while True:
+    batch_filename = os.path.join(data_folder, f"{'test'}_batch{batch_idx}.pkl")
+    if os.path.exists(batch_filename):
+        with open(filename, 'rb') as file:
+            data = pickle.load(file)
+            embeddings, labels = zip(*data)
+            embeddings = tf.convert_to_tensor(embeddings, dtype=tf.float32)
+            labels = tf.convert_to_tensor(labels, dtype=tf.float32)
+            dataset = tf.data.Dataset.from_tensor_slices((embeddings, labels))
+            dataset = dataset.shuffle(buffer_size=len(data)).batch(batch_size).prefetch(tf.data.AUTOTUNE)
+            combined_model.fit(dataset)
+        batch_idx = batch_idx + 1
+    else:
+        break
 """
 #Save weights
 #custom_model_path = '/Users/adityaasuratkal/Downloads/GitHub/SegmentAnythingClone/encoder_weights.h5'
