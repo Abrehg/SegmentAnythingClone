@@ -2,7 +2,6 @@ import tensorflow as tf
 from tensorflow import keras as keras
 from keras import layers as tfl
 import numpy as np
-from inputFormatting import formatImg
 
 def encoder():
     encLayers = 5
