@@ -14,11 +14,11 @@ def encoder():
             X = tfl.Dense(activation='relu', units=units)(X)
         return X
 
-    def encoderLayer(input):
-        X = tfl.MultiHeadAttention(num_heads=16, key_dim=1024, dropout=0.3)(input, input)
+    def encoderLayer(inputs):
+        X = tfl.MultiHeadAttention(num_heads=16, key_dim=1024, dropout=0.3)(inputs, inputs)
         X = tf.cast(X, dtype=tf.float32)
-        input = tf.cast(input, dtype=tf.float32)
-        X = tf.add(X, input)
+        inputs = tf.cast(inputs, dtype=tf.float32)
+        X = tf.add(X, inputs)
         input2 = tfl.LayerNormalization()(X)
         X = feedForwardNN(input2)
         X = tf.cast(X, dtype=tf.float32)
