@@ -1,13 +1,15 @@
 import tensorflow as tf
-import optuna
-from tensorflow import keras as keras
-from keras import layers as tfl
+from gensim.models import KeyedVectors
 
-textInput = ""
+textInput = "Hello World"
 
 def formatText(text):
-    embedding = 0
-    return embedding
+    slicedInput = text.split(" ")
+    glove_file = '/Users/adityaasuratkal/Downloads/glove.840B.300d.txt'
+    word_vectors = KeyedVectors.load_word2vec_format(glove_file, binary=False, no_header=True)
+    embeddings = [word_vectors[word] for word in slicedInput if word in word_vectors]
+
+    return embeddings
 
 out = formatText(textInput)
-print(out)
+print(tf.shape(out))
