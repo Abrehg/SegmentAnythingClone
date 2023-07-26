@@ -4,7 +4,6 @@ from keras import layers as tfl
 import numpy as np
 from FullEncoder import encoder
 from processImageNet import main
-import time
 import h5py
 import os
 import multiprocessing
@@ -50,7 +49,6 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()
     main(image_data_folder, pickle_dump_folder)
 
-"""
 batch_idx = 0
 while True:
     filename = os.path.join(pickle_dump_folder, f"{'train'}_batch{batch_idx}.h5")
@@ -82,7 +80,6 @@ while True:
         batch_idx = batch_idx + 1
     else:
         break
-"""
 """    
 batch_idx = 0
 while True:
@@ -101,16 +98,21 @@ while True:
         break
 """
 #Save weights
-"""
+# Create the encoder model with the same layers
 encoder_input = combined_model.input
-encoder_output = combined_model.layers[0].output
-i = 1
-for layer in combined_model.layers[1:finalLayer]:
-    print(f"layer {i}")
+encoder_output = encoder_model.layers[0].output
+for layer in combined_model.layers[1:finalLayer+1]:
     encoder_output = layer(encoder_output)
+
+# Create the encoder model
+encoder_weights_model = keras.Model(inputs=encoder_input, outputs=encoder_output)
+
+# Load the weights for each layer in the encoder model
+i = 1
+for layer in combined_model.layers[1:finalLayer+1]:
+    print(f"Loading weights for layer {i}")
+    encoder_weights_model.layers[i].set_weights(layer.get_weights())
     i = i + 1
 
-encoder_weights_model = keras.Model(inputs=encoder_input, outputs=encoder_output)
-custom_model_path = '/Users/adityaasuratkal/Downloads/GitHub/SegmentAnythingClone/encoder_weights.h5'
-encoder_weights_model.layers.save_weights(custom_model_path)
-"""
+# Save the weights of the encoder model
+encoder_weights_model.save_weights('/Users/adityaasuratkal/Downloads/GitHub/SegmentAnythingClone/encoder_weights.h5')
