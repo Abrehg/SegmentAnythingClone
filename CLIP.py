@@ -5,5 +5,8 @@ from formatText import formatText
 
 textInput = 'test'
 
-out = formatText(textInput)
+embeddings = formatText(textInput)
 
+def CLIP():
+    model = 0
+    return model
