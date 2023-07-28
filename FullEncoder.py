@@ -4,7 +4,7 @@ from keras import layers as tfl
 import numpy as np
 
 def encoder():
-    encLayers = 5
+    encLayers = 3
     NNLayers = 5
     units = 1024
 
