@@ -6,7 +6,10 @@ from formatText import formatText
 textInput = 'test'
 
 embeddings = formatText(textInput)
+out = tfl.Dense(1024, 'relu')(embeddings)
 
-def CLIP():
-    model = 0
-    return model
+print(tf.shape(out))
+
+#def textEncoder():
+#    model = 0
+#    return model
