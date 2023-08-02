@@ -6,6 +6,7 @@ from inputFormatting import formatImg
 from inputFormatting import formatTensorFromPath
 from FullEncoder import encoder
 from formatText import formatText
+from CLIPencoder import textEncoder
 from decodeFormat import decodeFormat
 from Decoder import decoder
 
@@ -13,14 +14,21 @@ from Decoder import decoder
 #Then figure out how to decode into a full workable mask with lightweight decoder using MAE and CLIP 
 #Finally train the decoder network to generate a workable mask using the Meta Segment Anything dataset
 
-image = keras.Input((None, None, None, 3))
+#imgFilePath = "Test"
+imgFilePath = "/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Semantic Segmentation/images/vedioDataCollection_July2019_Kent0001.png"
+#imgFilePath = "/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/ADEChallengeData2016/images/training/ADE_train_00000001.jpg"
+text = "Hello World"
+
+image = formatTensorFromPath(imgFilePath)
 #input encoding of image (Transformer encoder + MAE)
 fullEncodings, MAEencodings = formatImg(image)
 X = encoder()(MAEencodings)
 
 #input encoding of text (CLIP)
-#Q = formatText(text)
-#
+Q = formatText(text)
+textEnc = textEncoder()
+Q = textEnc(Q)
+
 #decode and return output mask (Transformer decoder)
 #X = decodeFormat(X)
 #mask = decoder(X)
@@ -36,3 +44,5 @@ fullEncodings, MAEencodings = formatImg(formatTensorFromPath(imgFilePath))
 X = encoder()(MAEencodings)
 
 Q = formatText(text)
+textEnc = textEncoder()
+Q = textEnc(Q)
