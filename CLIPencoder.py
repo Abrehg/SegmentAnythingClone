@@ -59,19 +59,6 @@ def positional_encoding(seq_len, d_model):
     encodings = tf.expand_dims(angles, axis=0)
 
     return encodings
-    """
-    position_encodings = np.zeros((seq_len, d_model))
-    for pos in range(seq_len):
-        for i in range(d_model):
-            if i % 2 == 0:
-                position_encodings[pos, i] = np.sin(pos / (10000 ** (2 * i / d_model)))
-            else:
-                position_encodings[pos, i] = np.cos(pos / (10000 ** ((2 * i - 1) / d_model)))
-    
-    encodings = tf.convert_to_tensor(position_encodings, dtype=tf.float32)
-
-    return encodings
-    """
 
 def add_positional_encodings(word_vectors):
     seq_length = tf.shape(word_vectors)[1]
