@@ -46,6 +46,20 @@ def textEncoder():
     return model
 
 def positional_encoding(seq_len, d_model):
+
+    position = tf.range(seq_len, dtype=tf.float32)
+    i = tf.range(d_model, dtype=tf.float32)
+    
+    angles = 1 / tf.pow(10000.0, (2 * (i // 2)) / tf.cast(d_model, dtype=tf.float32))
+    angles = tf.reshape(angles, (1, -1))
+    
+    angles = tf.multiply(position[:, tf.newaxis], angles)
+    
+    angles = tf.concat([tf.sin(angles[:, 0::2]), tf.cos(angles[:, 1::2])], axis=-1)
+    encodings = tf.expand_dims(angles, axis=0)
+
+    return encodings
+    """
     position_encodings = np.zeros((seq_len, d_model))
     for pos in range(seq_len):
         for i in range(d_model):
@@ -57,14 +71,12 @@ def positional_encoding(seq_len, d_model):
     encodings = tf.convert_to_tensor(position_encodings, dtype=tf.float32)
 
     return encodings
+    """
 
 def add_positional_encodings(word_vectors):
-    seq_length = word_vectors.shape[1]
-    d_model = word_vectors.shape[2]
+    seq_length = tf.shape(word_vectors)[1]
+    d_model = tf.shape(word_vectors)[2]
     positional_encodings = positional_encoding(seq_length, d_model)
-    print(tf.shape(word_vectors)) # (None, None, 1024)
-    print(tf.shape(positional_encodings)) # (None, 2048)
-    #positional_encodings = tf.tile(tf.expand_dims(positional_encodings, 0), [tf.shape(word_vectors)[0], 1, 1])
     word_vectors_with_position = word_vectors + positional_encodings
     return word_vectors_with_position
 
