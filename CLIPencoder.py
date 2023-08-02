@@ -1,10 +1,6 @@
 import tensorflow as tf
 from tensorflow import keras as keras
 from keras import layers as tfl
-from formatText import formatText
-import numpy as np
-
-textInput = 'Hello World'
 
 def textEncoder():
     encLayers = 3
@@ -66,7 +62,3 @@ def add_positional_encodings(word_vectors):
     positional_encodings = positional_encoding(seq_length, d_model)
     word_vectors_with_position = word_vectors + positional_encodings
     return word_vectors_with_position
-
-embeddings = formatText(textInput)
-out = textEncoder()(embeddings)
-print(tf.shape(out))
