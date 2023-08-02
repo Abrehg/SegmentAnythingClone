@@ -2,8 +2,9 @@ import tensorflow as tf
 from tensorflow import keras as keras
 from keras import layers as tfl
 from formatText import formatText
+import numpy as np
 
-textInput = 'test'
+textInput = 'Hello World'
 
 def textEncoder():
     encLayers = 3
@@ -36,28 +37,34 @@ def textEncoder():
             X = encoderLayer(X)
         return X
 
-    input_embeddings = keras.Input(shape=(None, 1024))
-    embeddingsWithPosition = add_positional_encodings(input_embeddings)
-    X = tfl.Dense(1024, 'relu')(embeddingsWithPosition)
+    input_embeddings = keras.Input(shape=(None, 300))
+    X = tfl.Dense(1024, 'relu')(input_embeddings)
+    X = add_positional_encodings(X)
     output = encode(X)
     model = keras.Model(inputs=input_embeddings, outputs=output)
     
     return model
 
-def get_positional_encoding(seq_length, d_model):
-    i = tf.range(d_model, dtype=tf.float32) // 2
-    angles = tf.pow(10000.0, -2 * i / tf.cast(d_model, dtype=tf.float32))
-    positions = tf.cast(tf.range(seq_length), dtype=tf.float32)
-    angles = tf.expand_dims(positions, -1) * tf.expand_dims(angles, 0)
-    encoding = tf.concat([tf.sin(angles), tf.cos(angles)], axis=-1)
-    return encoding
+def positional_encoding(seq_len, d_model):
+    position_encodings = np.zeros((seq_len, d_model))
+    for pos in range(seq_len):
+        for i in range(d_model):
+            if i % 2 == 0:
+                position_encodings[pos, i] = np.sin(pos / (10000 ** (2 * i / d_model)))
+            else:
+                position_encodings[pos, i] = np.cos(pos / (10000 ** ((2 * i - 1) / d_model)))
+    
+    encodings = tf.convert_to_tensor(position_encodings, dtype=tf.float32)
+
+    return encodings
 
 def add_positional_encodings(word_vectors):
-    seq_length, d_model = tf.shape(word_vectors)[1], tf.shape(word_vectors)[2]
-    positional_encodings = get_positional_encoding(seq_length, d_model)
-    print(tf.shape(word_vectors))
-    print(tf.shape(positional_encodings))
-    positional_encodings = tf.tile(positional_encodings, [tf.shape(word_vectors)[0], 1, 1])
+    seq_length = word_vectors.shape[1]
+    d_model = word_vectors.shape[2]
+    positional_encodings = positional_encoding(seq_length, d_model)
+    print(tf.shape(word_vectors)) # (None, None, 1024)
+    print(tf.shape(positional_encodings)) # (None, 2048)
+    #positional_encodings = tf.tile(tf.expand_dims(positional_encodings, 0), [tf.shape(word_vectors)[0], 1, 1])
     word_vectors_with_position = word_vectors + positional_encodings
     return word_vectors_with_position
 

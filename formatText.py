@@ -9,7 +9,8 @@ def formatText(text):
     glove_file = '/Users/adityaasuratkal/Downloads/glove.840B.300d.txt'
     word_vectors = KeyedVectors.load_word2vec_format(glove_file, binary=False, no_header=True)
     embeddings = [word_vectors[word] for word in slicedInput if word in word_vectors]
-    finalEmbedding = tf.convert_to_tensor(embeddings, dtype=tf.float32)
+    Embedding = tf.convert_to_tensor(embeddings, dtype=tf.float32)
+    finalEmbedding = tf.expand_dims(Embedding, axis=0)
 
     return finalEmbedding
 
