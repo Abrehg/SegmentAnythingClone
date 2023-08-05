@@ -1,7 +1,6 @@
 import tensorflow as tf
 from gensim.models import KeyedVectors
 import string
-import numpy as np
 
 glove_file = '/Users/adityaasuratkal/Downloads/glove.840B.300d.txt'
 word_vectors = KeyedVectors.load_word2vec_format(glove_file, binary=False, no_header=True)
