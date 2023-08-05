@@ -18,7 +18,6 @@ def textEncoder():
         X = tf.cast(X, dtype=tf.float32)
         inputs = tf.cast(inputs, dtype=tf.float32)
         X = tf.add(X, inputs)
-        X = tfl.LayerNormalization()(X)
         input2 = tfl.LayerNormalization()(X)
         X = feedForwardNN(input2)
         X = tf.cast(X, dtype=tf.float32)
@@ -28,13 +27,13 @@ def textEncoder():
         return output
 
     def encode(input_tensor):
-        X = tf.cast(input_tensor, dtype=tf.float32)
+        X = input_tensor
         for i in range(0, encLayers):
             X = encoderLayer(X)
         return X
 
     input_embeddings = keras.Input(shape=(None, 300))
-    X = tfl.Dense(1024, 'relu')(input_embeddings)
+    X = tfl.Dense(units = 1024, activation='relu')(input_embeddings)
     X = add_positional_encodings(X)
     output = encode(X)
     model = keras.Model(inputs=input_embeddings, outputs=output)
