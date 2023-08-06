@@ -115,4 +115,4 @@ for layer in combined_model.layers[1:finalLayer+1]:
     i = i + 1
 
 # Save the weights of the encoder model
-encoder_weights_model.save_weights('/Users/adityaasuratkal/Downloads/GitHub/SegmentAnythingClone/encoder_weights.h5')
+encoder_weights_model.save_weights('./img_encoder_weights.h5')
