@@ -67,3 +67,48 @@ with tf.GradientTape() as tape:
     predictions = model(inputs)
     loss = loss_fn(targets, predictions)
 """
+
+def transformer_decoder_layer(inputs, enc_output):
+    # Define your decoder layer using Functional API
+    # Example:
+    attention = tfl.Attention()([inputs, enc_output])
+    add = tfl.Add()([attention, inputs])
+    normalized = tfl.LayerNormalization()(add)
+    ffn = tfl.Dense(512, activation='relu')(normalized)
+    outputs = tfl.Dense(300)(ffn)  # Modify the output dimension to match GloVe vectors
+    return outputs
+
+def generate_sequence(encoder_output, start_token):
+    # Initialize sequence with start token
+    sequence = [start_token]
+    decoder_input = tf.expand_dims([start_token], 0)
+
+    max_length = 20000
+
+    # Iterate over each time step
+    for _ in range(max_length):
+        # Generate next token's distribution using decoder layer
+        decoder_output = transformer_decoder_layer(decoder_input, encoder_output)
+
+        # Select the token with highest probability (greedy sampling)
+        next_token = tf.argmax(decoder_output, axis=-1)
+        
+        # Append the token to the sequence
+        sequence.append(next_token.numpy()[0, 0])
+
+        # Update the decoder input for the next time step
+        decoder_input = tf.concat([decoder_input, next_token], axis=-1)
+
+    return sequence
+
+# Example usage
+start_token = tf.random.normal((1, 300))  # Start-of-sequence token
+
+# Sample encoder output (replace with your actual GloVe vectors)
+encoder_output = textEnc(inputEmbeddings)  # Batch size of 1, sequence length of max_length, GloVe dimension of 300
+
+# Generate a sequence using autoregressive decoding
+generated_sequence = generate_sequence(encoder_output, start_token)
+
+print("Generated Sequence:", generated_sequence)
+
