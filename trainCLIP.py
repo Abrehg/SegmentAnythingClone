@@ -2,36 +2,91 @@ import tensorflow as tf
 from tensorflow import keras as keras
 from keras import layers as tfl
 from formatText import formatText
+from formatText import findWord
 from CLIPencoder import textEncoder
 import tensorflow_datasets as tfds
-import pandas as pd
-import gc
-import numpy as np
 
-#textInput = 'Hello World'
+"""
+textInput = 'Hello World this is a test'
 
-#embeddings = formatText(textInput)
+embeddings = formatText(textInput)
+word = findWord(embeddings)
+print(word)
+"""
 
 NNLayers = 7
 unitsMid = 1000
 unitsOut = 1
 
+eos_token = tf.zeros((1, 300))
+
+def positional_encoding(inputs):
+    seq_len, d_model = tf.shape(inputs)[1], inputs.shape[-1]
+    position = tf.range(start=0, limit=seq_len, delta=1, dtype=tf.float32)
+    position = tf.expand_dims(position, axis=0)
+    div_term = tf.pow(10000.0, 2 * tf.range(d_model // 2, dtype=tf.float32) / d_model)
+    div_term = tf.expand_dims(div_term, axis=0)
+    angles = position / div_term
+
+    angle_rads = tf.concat([tf.sin(angles), tf.cos(angles)], axis=-1)
+    angle_rads = tf.expand_dims(angle_rads, axis=0)
+    return angle_rads
+
+def transformer_decoder_layer(inputs, enc_output):
+    pos_encodings = positional_encoding(inputs)
+    vec = inputs + pos_encodings
+    X = tfl.MultiHeadAttention(num_heads=16, key_dim=300, dropout=0.3)(vec, vec)
+    add1 = tfl.Add()([X, vec])
+    norm1 = tfl.LayerNormalization()(add1)
+    enc = tfl.MultiHeadAttention(num_heads=16, key_dim=300, dropout=0.3)(enc_output, enc_output, norm1)
+    add2 = tfl.Add()([enc, norm1])
+    norm2 = tfl.LayerNormalization()(add2)
+    ffn1 = tfl.Dense(512, activation='relu')(norm2)
+    ffn2 = tfl.Dense(300, activation='relu')(ffn1)
+    add3 = tfl.Add()([ffn2, norm2])
+    norm3 = tfl.LayerNormalization()(add3)
+    outputs = tfl.Dense(300, 'linear')(norm3)
+    return outputs
+
+def generate_sequence(encoder_output, start_token):
+    sequence = [start_token]
+    max_length = 2
+
+    for i in range(max_length):
+        sequence_tensor = tf.expand_dims(tf.concat(sequence, axis=0), axis=0)
+        decoder_output = transformer_decoder_layer(sequence_tensor, encoder_output)
+        next_token = tfl.GlobalAveragePooling1D()(decoder_output)
+
+        # Append the token to the sequence
+        sequence.append(next_token)
+
+    sequence = sequence[1:]
+    sequence = tf.stack(sequence, axis=1)
+      # Remove the start_token
+
+    return sequence
+
+# encoder output
 inputEmbeddings = keras.Input((None, 300))
 textEnc = textEncoder()
-x = textEnc(inputEmbeddings)
+encoder_output = textEnc(inputEmbeddings)
+X = tfl.GlobalAveragePooling1D()(encoder_output)
+start_token = tfl.Dense(300, 'relu')(X)
 
-for i in range(NNLayers):
-    x = tfl.Dense(unitsMid, activation='relu')(x)
-output = tfl.Dense(unitsOut, activation='sigmoid')(x)
+# Generate a sequence using autoregressive decoding
+generated_sequence = generate_sequence(encoder_output, start_token)
+
+print("Generated Sequence:", generated_sequence)
 
 # Create the combined model
-combined_model = keras.Model(inputs=inputEmbeddings, outputs=output)
+combined_model = keras.Model(inputs=inputEmbeddings, outputs=generated_sequence)
 
 combined_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Print the model summary
 combined_model.summary()
 
+"""
 #sentiment analysis training
 dataset_name = 'multi_news'
 (train_data, val_data, test_data), info = tfds.load(dataset_name, split=['train', 'validation', 'test'], shuffle_files=True, with_info=True)
@@ -50,7 +105,6 @@ y_val = process_dataset(val_data, 'summary')
 x_test = process_dataset(test_data, 'document')
 y_test = process_dataset(test_data, 'summary')
 
-"""
 batch_size = 512
 num_epochs = 10
 
@@ -67,48 +121,3 @@ with tf.GradientTape() as tape:
     predictions = model(inputs)
     loss = loss_fn(targets, predictions)
 """
-
-def transformer_decoder_layer(inputs, enc_output):
-    # Define your decoder layer using Functional API
-    # Example:
-    attention = tfl.Attention()([inputs, enc_output])
-    add = tfl.Add()([attention, inputs])
-    normalized = tfl.LayerNormalization()(add)
-    ffn = tfl.Dense(512, activation='relu')(normalized)
-    outputs = tfl.Dense(300)(ffn)  # Modify the output dimension to match GloVe vectors
-    return outputs
-
-def generate_sequence(encoder_output, start_token):
-    # Initialize sequence with start token
-    sequence = [start_token]
-    decoder_input = tf.expand_dims([start_token], 0)
-
-    max_length = 20000
-
-    # Iterate over each time step
-    for _ in range(max_length):
-        # Generate next token's distribution using decoder layer
-        decoder_output = transformer_decoder_layer(decoder_input, encoder_output)
-
-        # Select the token with highest probability (greedy sampling)
-        next_token = tf.argmax(decoder_output, axis=-1)
-        
-        # Append the token to the sequence
-        sequence.append(next_token.numpy()[0, 0])
-
-        # Update the decoder input for the next time step
-        decoder_input = tf.concat([decoder_input, next_token], axis=-1)
-
-    return sequence
-
-# Example usage
-start_token = tf.random.normal((1, 300))  # Start-of-sequence token
-
-# Sample encoder output (replace with your actual GloVe vectors)
-encoder_output = textEnc(inputEmbeddings)  # Batch size of 1, sequence length of max_length, GloVe dimension of 300
-
-# Generate a sequence using autoregressive decoding
-generated_sequence = generate_sequence(encoder_output, start_token)
-
-print("Generated Sequence:", generated_sequence)
-

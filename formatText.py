@@ -14,6 +14,17 @@ def formatText(text):
     embeddings = np.expand_dims(embeddings, axis=0)
     return embeddings
 
+def findWord(input_vector):
+    most_similar_words = []
+    for sentence_vectors in input_vector:
+        predicted_sentence = ""
+        for word_vector in sentence_vectors:
+            most_similar_word = word_vectors.similar_by_vector(word_vector, topn=1)[0][0]
+            predicted_sentence = predicted_sentence + most_similar_word + " "
+        predicted_sentence = predicted_sentence[:-1]
+        most_similar_words.append(predicted_sentence)
+    return most_similar_words
+
 def remove_punctuation(input_string):
     # Create a translation table to map punctuation characters to None
     translator = str.maketrans('', '', string.punctuation)
