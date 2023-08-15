@@ -5,6 +5,7 @@ from formatText import formatText
 from formatText import findWord
 from TextEncoder import textEncoder
 import tensorflow_datasets as tfds
+from keras import backend as K
 
 """
 textInput = 'Hello World this is a test'
@@ -69,6 +70,24 @@ def beam_search_generate_sequence(encoder_output, start_token):
 
     return sequences[0]
 
+def cosine_similarity_loss(y_true, y_pred):
+    y_true = K.l2_normalize(y_true, axis=-1)
+    y_pred = K.l2_normalize(y_pred, axis=-1)
+    cosine_sim = K.sum(y_true * y_pred, axis=-1)
+    similarity = 1 - cosine_sim
+    return similarity
+
+def custom_loss(y_true, y_pred):
+    similarity_loss = cosine_similarity_loss(y_true, y_pred)
+    
+    max_length = 2000
+    sequence_length = K.shape(y_pred)[1]
+    length_penalty = K.maximum(0.0, sequence_length / max_length - 1.0)
+    
+    total_loss = similarity_loss + 0.25 * length_penalty  # Adjust the weight of the length penalty
+    
+    return total_loss
+
 # input tensor
 inputEmbeddings = keras.Input((None, 300))
 
@@ -88,12 +107,11 @@ print("Generated Sequence:", generated_sequence)
 # Create the combined model
 combined_model = keras.Model(inputs=inputEmbeddings, outputs=generated_sequence)
 
-combined_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+combined_model.compile(optimizer='adam', loss=custom_loss)
 
 # Print the model summary
 combined_model.summary()
 
-"""
 #text summarization training
 dataset_name = 'multi_news'
 (train_data, val_data, test_data), info = tfds.load(dataset_name, split=['train', 'validation', 'test'], shuffle_files=True, with_info=True)
@@ -124,10 +142,3 @@ combined_model.test_on_batch(x=x_test, y=y_test)
 
 #save desired weights
 textEnc.save_weights('./text_encoder_weights.h5')
-"""
-"""
-#develop loss function based on beam search that also slightly adds in loss for longer sequences
-with tf.GradientTape() as tape:
-    predictions = model(inputs)
-    loss = loss_fn(targets, predictions)
-"""
