@@ -124,24 +124,33 @@ def process_dataset(data, key):
     vectors = [formatText(entry[key].numpy().decode("utf-8")) for entry in data]
     return vectors
 
+print("processing started")
+
 x_train = process_dataset(train_data, 'document')
 y_train = process_dataset(train_data, 'summary')
+print("train processed")
 
 x_val = process_dataset(val_data, 'document')
 y_val = process_dataset(val_data, 'summary')
+print("val processed")
 
 x_test = process_dataset(test_data, 'document')
 y_test = process_dataset(test_data, 'summary')
+print("test processed")
 
 batch_size = 512
 num_epochs = 10
 
 #train dataset
 combined_model.fit(x=x_train, y=y_train, batch_size=batch_size, epochs=num_epochs)
+print("train fitted")
 
 combined_model.fit(x=x_val, y=y_val, batch_size=batch_size, epochs=num_epochs)
+print("val fitted")
 
 combined_model.test_on_batch(x=x_test, y=y_test)
+print("test set implemented")
 
 #save desired weights
 textEnc.save_weights('./text_encoder_weights.h5')
+print("process finished")
