@@ -59,6 +59,9 @@ def beam_search_generate_sequence(encoder_output, start_token):
     for _ in range(max_length):
         all_candidates = []
         for seq in sequences:
+            if seq[-1] is eos_token:  # Check if the last token is EOS token
+                all_candidates.append(seq)
+                continue
             sequence_tensor = tf.expand_dims(seq, axis=0)
             decoder_output = transformer_decoder_layer(sequence_tensor, encoder_output)
             candidate_token = tfl.GlobalAveragePooling1D()(decoder_output)
@@ -68,7 +71,7 @@ def beam_search_generate_sequence(encoder_output, start_token):
         ordered = sorted(all_candidates, key=lambda tup: tup[1], reverse=True)
         sequences = [ordered[i][0] for i in range(min(beam_size, len(ordered)))]
 
-    return sequences[0]
+    return sequences[0][:-1]
 
 def cosine_similarity_loss(y_true, y_pred):
     y_true = K.l2_normalize(y_true, axis=-1)
