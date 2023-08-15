@@ -53,7 +53,7 @@ def transformer_decoder_layer(inputs, enc_output):
 
 def beam_search_generate_sequence(encoder_output, start_token):
     beam_size = 5
-    max_length = 200
+    max_length = 2000
     sequences = [start_token]
 
     for _ in range(max_length):
