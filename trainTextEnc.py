@@ -50,35 +50,24 @@ def transformer_decoder_layer(inputs, enc_output):
     outputs = tfl.Dense(300, 'linear')(norm3)
     return outputs
 
-def generate_sequence(encoder_output, start_token):
-    sequence = [start_token]
-    max_length = 2
+def beam_search_generate_sequence(encoder_output, start_token):
+    beam_size = 5
+    max_length = 200
+    sequences = [start_token]
 
-    #sequence generation loop
-    for i in range(max_length):
-        #convert input to tensor
-        sequence_tensor = tf.expand_dims(tf.concat(sequence, axis=0), axis=0)
+    for _ in range(max_length):
+        all_candidates = []
+        for seq in sequences:
+            sequence_tensor = tf.expand_dims(seq, axis=0)
+            decoder_output = transformer_decoder_layer(sequence_tensor, encoder_output)
+            candidate_token = tfl.GlobalAveragePooling1D()(decoder_output)
+            candidate_seq = tf.concat([seq, candidate_token], axis=0)
+            all_candidates.append((candidate_seq, tf.reduce_sum(candidate_token)))
+        
+        ordered = sorted(all_candidates, key=lambda tup: tup[1], reverse=True)
+        sequences = [ordered[i][0] for i in range(min(beam_size, len(ordered)))]
 
-        #generate single output in time for sequence
-        decoder_output = transformer_decoder_layer(sequence_tensor, encoder_output)
-
-        #condense large output into size (1, 300)
-        next_token = tfl.GlobalAveragePooling1D()(decoder_output)
-
-        #create a way to use the variable (eos_token) as a flag in order to stop the sequence from generating further
-        #essentially, if eos_token == next_token: break
-        #but next_token is a blank input tensor when initiated with a model, which can't be used with a regular tensor in a flag based system
-
-        # Append the token to the sequence
-        sequence.append(next_token)
-
-    # Remove the start_token
-    sequence = sequence[1:]
-
-    #combine list into tensor
-    sequence = tf.stack(sequence, axis=1)
-
-    return sequence
+    return sequences[0]
 
 # input tensor
 inputEmbeddings = keras.Input((None, 300))
@@ -92,7 +81,7 @@ X = tfl.GlobalAveragePooling1D()(encoder_output)
 start_token = tfl.Dense(300, 'relu')(X)
 
 # Generate a sequence using transformer decoder
-generated_sequence = generate_sequence(encoder_output, start_token)
+generated_sequence = beam_search_generate_sequence(encoder_output, start_token)
 
 print("Generated Sequence:", generated_sequence)
 
