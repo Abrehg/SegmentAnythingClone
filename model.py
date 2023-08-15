@@ -6,6 +6,7 @@ from inputFormatting import formatImg
 from inputFormatting import formatTensorFromPath
 from FullEncoder import encoder
 from formatText import formatText
+from formatText import findWord
 from TextEncoder import textEncoder
 from decodeFormat import decodeFormat
 from Decoder import decoder
