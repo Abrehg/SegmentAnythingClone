@@ -4,7 +4,7 @@ from tensorflow import keras as keras
 from keras import layers as tfl
 from inputFormatting import formatTensorFromPath
 from inputFormatting import formatImg
-from FullEncoder import encoder
+from ImgEncoder import encoder
 
 #imgFilePath = "Test"
 imgFilePath = "/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Semantic Segmentation/images/vedioDataCollection_July2019_Kent0001.png"

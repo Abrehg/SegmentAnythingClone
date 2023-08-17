@@ -1,7 +1,6 @@
 import tensorflow as tf
 from tensorflow import keras as keras
 from keras import layers as tfl
-import numpy as np
 
 def encoder():
     encLayers = 3

@@ -4,7 +4,7 @@ from tensorflow import keras as keras
 from keras import layers as tfl
 from inputFormatting import formatImg
 from inputFormatting import formatTensorFromPath
-from FullEncoder import encoder
+from ImgEncoder import encoder
 from formatText import formatText
 from formatText import findWord
 from TextEncoder import textEncoder

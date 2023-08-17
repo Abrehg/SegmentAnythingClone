@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow import keras
 from keras import layers as tfl
 import numpy as np
-from FullEncoder import encoder
+from ImgEncoder import encoder
 from processImageNet import main
 import h5py
 import os
