@@ -36,7 +36,6 @@ def textEncoder():
     X = add_positional_encodings(input_embeddings)
     output = encode(X)
     model = keras.Model(inputs=input_embeddings, outputs=output)
-    
     return model
 
 def positional_encoding(seq_len, d_model):

@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow import keras
 from keras import layers as tfl
 import numpy as np
-from ImgEncoder import encoder
+from ImgEncoder import imgEncoder
 from processImageNet import main
 import h5py
 import os
@@ -13,7 +13,7 @@ unitsMid = 100
 unitsOut = 1000
 
 # Create the encoder model
-encoder_model = encoder()
+encoder_model = imgEncoder()
 
 # Obtain the encoder output
 encoder_output = encoder_model.output

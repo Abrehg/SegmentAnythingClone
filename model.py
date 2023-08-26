@@ -2,13 +2,12 @@ import tensorflow as tf
 import optuna
 from tensorflow import keras as keras
 from keras import layers as tfl
-from inputFormatting import formatImg
-from inputFormatting import formatTensorFromPath
-from ImgEncoder import encoder
+from formatImg import formatImg
+from formatImg import formatTensorFromPath
+from ImgEncoder import imgEncoder
 from formatText import formatText
 from formatText import findWord
 from TextEncoder import textEncoder
-from decodeFormat import decodeFormat
 from Decoder import decoder
 
 #encode text inputs using the CLIP architecture
@@ -22,8 +21,8 @@ text = "Hello World"
 
 image = formatTensorFromPath(imgFilePath)
 #input encoding of image (Transformer encoder + MAE)
-fullEncodings, MAEencodings = formatImg(image)
-X = encoder()(MAEencodings)
+fullEncodings, MAEencodings, shape = formatImg(image)
+X = imgEncoder()(MAEencodings)
 
 #input encoding of text (CLIP)
 Q = formatText(text)
@@ -42,7 +41,7 @@ imgFilePath = "/Users/adityaasuratkal/Downloads/ML_Projects/UNet/Data/Indoor Sem
 text = "Hello World"
 
 fullEncodings, MAEencodings = formatImg(formatTensorFromPath(imgFilePath))
-X = encoder()(MAEencodings)
+X = imgEncoder()(MAEencodings)
 
 Q = formatText(text)
 textEnc = textEncoder()

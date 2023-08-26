@@ -39,6 +39,8 @@ def transformer_decoder_layer(inputs, enc_output):
     pos_encodings = positional_encoding(inputs)
     vec = inputs + pos_encodings
     X = tfl.MultiHeadAttention(num_heads=16, key_dim=300, dropout=0.3)(vec, vec)
+    print(tf.shape(X))
+    print(tf.shape(vec))
     add1 = tfl.Add()([X, vec])
     norm1 = tfl.LayerNormalization()(add1)
     enc = tfl.MultiHeadAttention(num_heads=16, key_dim=300, dropout=0.3)(enc_output, enc_output, norm1)

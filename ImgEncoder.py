@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow import keras as keras
 from keras import layers as tfl
 
-def encoder():
+def imgEncoder():
     encLayers = 3
     NNLayers = 5
     units = 1024
@@ -35,5 +35,4 @@ def encoder():
     baseInput = keras.Input(shape=(None, 1024))
     output = encode(baseInput)
     model = keras.Model(inputs=baseInput, outputs=output)
-    
     return model
