@@ -1,9 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras as keras
 from keras import layers as tfl
-
-def custom_reshape(x, height_i, width_i):
-    return tf.reshape(x, (height_i, width_i, 1024))
+from keras import backend as K
 
 def decoder(text, image, measurements):
     image = tfl.MultiHeadAttention(num_heads=18, key_dim=1024, dropout=0.3)(image, image)
@@ -14,20 +12,21 @@ def decoder(text, image, measurements):
     X = tfl.LayerNormalization()(combined_features)
     X = tfl.MultiHeadAttention(num_heads=20, key_dim=1024, dropout=0.3)(X, X)
 
-    # Create an empty list to store reshaped tensors
-    reshaped_tensors = []
-
-    # Custom for loop to reshape each output tensor slice
-    for i in range(tf.shape(measurements)[0]):
+    # Define a custom function to reshape X based on measurements
+    def reshape_x(i, X, measurements):
         height_i = tf.cast(measurements[i][0] // 16, tf.int32)
         width_i = tf.cast(measurements[i][1] // 16, tf.int32)
-        
-        # Apply custom reshape to each slice of X
-        X_i = custom_reshape(X[i], height_i, width_i)
-        reshaped_tensors.append(X_i)
+        X_i = tf.reshape(X[i], (-1, height_i, width_i, 1024))
+        return i + 1, X_i, measurements
+
+    i = tf.constant(0)
+    _, reshaped_tensors, _ = tf.while_loop(lambda i, *_: i < tf.shape(measurements)[0],
+                                            reshape_x,
+                                            [i, X, measurements])
 
     # Stack the reshaped tensors along the first axis
-    X = tf.stack(reshaped_tensors)
+    X = reshaped_tensors
+    #X = tf.stack(reshaped_tensors)
     
     # Apply a final Conv2DTranspose layer if necessary
     X_upsampled = tfl.Conv2DTranspose(512, (3, 3), strides=(2, 2), padding='same', activation='relu')(X)
