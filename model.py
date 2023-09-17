@@ -10,8 +10,7 @@ from TextEncoder import textEncoder
 from Decoder import decoder
 import numpy as np
 
-imgFilePath = "/Users/adityaasuratkal/Downloads/Img_Data/Indoor Semantic Segmentation/images/vedioDataCollection_July2019_Kent0001.png"
-#imgFilePath = "/Users/adityaasuratkal/Downloads/Img_Data/ADEChallengeData2016/images/training/ADE_train_00000001.jpg"
+imgFilePath = "./vedioDataCollection_July2019_Kent0001.png"
 text = "Hello World"
 
 fullEncodings, MAEencodings, measure = formatImg(formatTensorFromPath(imgFilePath))
@@ -44,7 +43,7 @@ model = keras.Model(inputs = [imgEncodings_input, textEncodings_input, measureme
 print(model.summary())
 
 
-imgFilePath2 = "/Users/adityaasuratkal/Downloads/Img_Data/ADEChallengeData2016/images/training/ADE_train_00000001.jpg"
+imgFilePath2 = "./ADE_train_00000001.jpg"
 fullImgEncodings, MAEencodings, measure2 = formatImg(formatTensorFromPath(imgFilePath2))
 print(measure2)
 sizes = tf.convert_to_tensor([measure2])
