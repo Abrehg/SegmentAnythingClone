@@ -1,14 +1,12 @@
 import tensorflow as tf
 import optuna
 from tensorflow import keras as keras
-from keras import layers as tfl
 from formatImg import formatImg
 from formatImg import formatTensorFromPath
 from ImgEncoder import imgEncoder
 from formatText import formatText
 from TextEncoder import textEncoder
 from Decoder import decoder
-import numpy as np
 
 imgFilePath = "./vedioDataCollection_July2019_Kent0001.png"
 text = "Hello World"
