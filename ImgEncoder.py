@@ -32,7 +32,7 @@ def imgEncoder():
             X = encoderLayer(X)
         return X
 
-    baseInput = keras.Input(shape=(None, 1024))
+    baseInput = keras.Input(shape=(None, None, 1024))
     output = encode(baseInput)
     model = keras.Model(inputs=baseInput, outputs=output)
     return model

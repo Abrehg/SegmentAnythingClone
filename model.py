@@ -12,17 +12,20 @@ imgFilePath = "./vedioDataCollection_July2019_Kent0001.png"
 text = "Hello World"
 
 fullEncodings, MAEencodings, measure = formatImg(formatTensorFromPath(imgFilePath))
+print(f"path to Img shape: {tf.shape(fullEncodings)}")
 imgEnc = imgEncoder()
 X = imgEnc(fullEncodings)
-sizes = tf.convert_to_tensor([measure])
+print(f"img encodings shape: {tf.shape(X)}")
 
 Q = formatText(text)
 textEnc = textEncoder()
 Q = textEnc(Q)
+print(f"text encodings shape: {tf.shape(Q)}")
 
-out = decoder(Q, X, sizes)
-print (tf.shape(out))
+out = decoder(Q, X)
+print (f"output shape: {tf.shape(out)}")
 
+"""
 #input encoding of image (Transformer encoder + MAE)
 measurements_input = keras.layers.Input((2))
 imgEncodings_input = keras.Input((None, 1024), name="img_encodings")
@@ -50,3 +53,4 @@ textEncodings = formatText(text)
 
 out = model.predict([fullImgEncodings, textEncodings, sizes])
 print(tf.shape(out))
+"""

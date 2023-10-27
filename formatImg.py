@@ -37,13 +37,14 @@ def formatImg(img):
     #Add positional encodings to the image embeddings
     encodings = tf.reshape(encodings, [(new_height // 16), (new_width // 16), 1024])
     embeddings = add_positional_encoding(encodings)
-    embeddings = tf.reshape(embeddings, [-1, 1024])
     finalEmbeddings = tf.expand_dims(embeddings, axis=0)
+    MAEencodings = finalEmbeddings
 
     # Create a mask to remove a percentage of encodings
+    embeddings = tf.reshape(embeddings, [-1, 1024])
     mask = np.random.rand(((new_height//16)*(new_width//16)),1) > (percentRemove/100)
     maskedEncodings = np.multiply(embeddings, mask)
-    MAEencodings = maskedEncodings[np.any(maskedEncodings != 0, axis=1)]
+    MAEencodings = tf.reshape(maskedEncodings, [(new_height // 16), (new_width // 16), 1024])
     MAEencodings = tf.expand_dims(MAEencodings, axis=0)
 
     return finalEmbeddings, MAEencodings, [new_height, new_width]
