@@ -28,22 +28,26 @@ model = keras.Model(inputs = [imgEncodings_input, textEncodings_input], outputs 
 imgFilePath2 = "/Users/adityaasuratkal/Downloads/Img_Data/ADE20K/ADE_frame_00000007/X/ADE_frame_00000007.jpg"
 text = "Hello World"
 img = formatTensorFromPath(imgFilePath2)
-print(tf.shape(img))
+print(f"original image shape: {tf.shape(img)}")
 fullImgEncodings, MAEencodings = formatImg(img)
 
 textEncodings = formatText(text)
 
 out = model.predict([fullImgEncodings, textEncodings])
-print(tf.shape(out))
 
 mask = tf.io.read_file("/Users/adityaasuratkal/Downloads/Img_Data/ADE20K/ADE_frame_00000007/Y/instance_018_ADE_frame_00000007.png")
 correct = tf.io.decode_image(mask, channels=1, dtype=tf.dtypes.uint8)
 
 def custom_loss(y_true, y_pred):
-    epsilon = 0.
-    epsilonTensor = tf.cast(epsilon, y_true.dtype)
-    conditionYTrue = tf.math.greater(y_true, epsilonTensor)
-    conditionYHat = tf.math.greater(y_pred, epsilonTensor)
+    epsilon = 0.3
+    epsilonTensorTrue = tf.cast(epsilon, y_true.dtype)
+    epsilonTensorPred = tf.cast(epsilon, y_pred.dtype)
+
+    heightTrue, widthTrue, _ = y_true.shape
+    heightPred, widthPred, _ = y_pred.shape
+    y_pred = tf.image.crop_to_bounding_box(y_pred, (heightPred-heightTrue)//2, (widthPred-widthTrue)//2, heightTrue, widthTrue)
+    conditionYTrue = tf.math.greater(y_true, epsilonTensorTrue)
+    conditionYHat = tf.math.greater(y_pred, epsilonTensorPred)
 
     Intersection = tf.logical_and(conditionYTrue, conditionYHat)
     Union = tf.logical_or(conditionYTrue, conditionYHat)
@@ -56,6 +60,9 @@ def custom_loss(y_true, y_pred):
     loss = 1-IoU
 
     return loss
+
+print(f"model output shape: {tf.shape(out[0])}")
+print(f"mask shape: {tf.shape(correct)}")
 
 print(custom_loss(correct, out[0]))
 
