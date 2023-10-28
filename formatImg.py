@@ -47,7 +47,7 @@ def formatImg(img):
     MAEencodings = tf.reshape(maskedEncodings, [(new_height // 16), (new_width // 16), 1024])
     MAEencodings = tf.expand_dims(MAEencodings, axis=0)
 
-    return finalEmbeddings, MAEencodings, [new_height, new_width]
+    return finalEmbeddings, MAEencodings
 
 #takes filepath as string and turns image into tensor
 def formatTensorFromPath(Filepath):
