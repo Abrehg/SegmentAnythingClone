@@ -1,4 +1,4 @@
-#Segment Anything Clone
+# Segment Anything Clone
 
 bXikxaub
 
