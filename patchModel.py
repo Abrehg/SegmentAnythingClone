@@ -1,4 +1,4 @@
-#Defined patch model for 16x16 patch
+#Define patch model for 16x16 patch
 
 import tensorflow as tf
 
