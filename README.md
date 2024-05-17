@@ -18,4 +18,4 @@ Finally, a decoder loosely based on the standard transformer decoder takes both 
 
 Basic architecture developed, just need to train the model
 
-Started 6/30/23, Finished --/--/23
+Started 6/30/23, Finished --/--/24

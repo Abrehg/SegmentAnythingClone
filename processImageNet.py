@@ -1,7 +1,8 @@
+#Processing ImageNet for image recognition
+
 import tensorflow as tf
 import os
 import h5py
-import numpy as np
 import gc
 from formatImg import formatImg
 from formatImg import formatTensorFromPath
@@ -31,6 +32,7 @@ def main(image_folder, dump_folder):
     compile_data_from_batches(dump_folder, 'test')
 """
 
+#Parent function that inputs images from path and then processes them
 def load_and_process_images(dir_path, data_folder, pickleFolder, batch_size):
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
     image_files = []
@@ -64,6 +66,7 @@ def load_and_process_images(dir_path, data_folder, pickleFolder, batch_size):
         labels = None
         gc.collect()
 
+#Read image from disk and find label
 def process_image(image_path):
     path = image_path.split("/")
     for i in range(0, len(path)):
@@ -97,6 +100,7 @@ def process_image(image_path):
         one_hot_label = tf.one_hot(class_label, depth=1000)
     return finalEmbeddings, one_hot_label
 
+#Save processed data to disk
 def save_data_to_disk(embeddings, labels, dataset, batchNum, folder):
     filename = f"{dataset}_batch{batchNum}.h5"
     hdf5_file_path = os.path.join(folder, filename)
@@ -112,6 +116,7 @@ def save_data_to_disk(embeddings, labels, dataset, batchNum, folder):
 
     print(f"{filename} has been saved")
 
+#Find data stored in h5 file for each batch
 def compile_data_from_batches(data_folder, dataset_name):
     compiled_data = []
     batch_idx = 0
@@ -133,6 +138,7 @@ def compile_data_from_batches(data_folder, dataset_name):
         embeddings = file.create_dataset("embeddings", data=[item[0] for item in compiled_data])
         labels = file.create_dataset("labels", data=[item[1] for item in compiled_data])
 
+#Read in file
 def read_file_as_list(file_path):
     try:
         with open(file_path, 'r') as file:

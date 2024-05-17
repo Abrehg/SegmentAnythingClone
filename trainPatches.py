@@ -1,9 +1,6 @@
+#Train patches model on cifar100 dataset
+
 import tensorflow as tf
-import matplotlib.pyplot as plt
-import optuna
-from tensorflow import keras
-from keras import layers as tfl
-import numpy as np
 from keras.datasets import cifar100
 from patchModel import EncGen
 

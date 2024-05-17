@@ -1,5 +1,6 @@
+#Generate positional encodings for transformer encoder or decoder
+
 #Courtesy of chatgpt
-import tensorflow as tf
 import numpy as np
 import math
 

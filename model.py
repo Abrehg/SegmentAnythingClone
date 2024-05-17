@@ -1,6 +1,7 @@
+#Defines complete model instance
+
 import tensorflow as tf
-import optuna
-from tensorflow import keras as keras
+import keras as keras
 from formatImg import formatImg
 from formatImg import formatTensorFromPath
 from ImgEncoder import imgEncoder
@@ -36,6 +37,7 @@ out = model.predict([fullImgEncodings, textEncodings])
 mask = tf.io.read_file("/Users/adityaasuratkal/Downloads/Img_Data/ADE20K/ADE_frame_00000007/Y/instance_018_ADE_frame_00000007.png")
 correct = tf.io.decode_image(mask, channels=1, dtype=tf.dtypes.uint8)
 """
+#Custom loss function for output mask (Intersection over Union)
 def custom_loss(y_true, y_pred):
     epsilon = 0.3
     epsilonTensorTrue = tf.cast(epsilon, y_true.dtype)
@@ -64,6 +66,7 @@ def custom_loss(y_true, y_pred):
 
 #print(custom_loss(correct, out[0]))
 
+#Compile model using ADAM and custom loss defined above 
 model.compile(optimizer= 'adam', loss=custom_loss)
 
 #print("model compiled")

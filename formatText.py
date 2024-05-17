@@ -1,11 +1,24 @@
-import tensorflow as tf
+#Convert string to vectors using GloVe (Global Vectors)
+
 from gensim.models import KeyedVectors
 import string
 import numpy as np
 
+#Load in GloVe file
 glove_file = '/Users/adityaasuratkal/Downloads/glove.840B.300d.txt'
 word_vectors = KeyedVectors.load_word2vec_format(glove_file, binary=False, no_header=True)
 
+#Remove punctuation for easier input
+def remove_punctuation(input_string):
+    # Create a translation table to map punctuation characters to None
+    translator = str.maketrans('', '', string.punctuation)
+    
+    # Remove punctuation from the input string
+    cleaned_string = input_string.translate(translator)
+    
+    return cleaned_string
+
+#General function for converting text to vector
 def formatText(text):
     text = remove_punctuation(text)
     slicedInput = text.split()
@@ -14,6 +27,7 @@ def formatText(text):
     embeddings = np.expand_dims(embeddings, axis=0)
     return embeddings
 
+#Find a word when given a vector
 def findWord(input_vector):
     most_similar_words = []
     for sentence_vectors in input_vector:
@@ -24,12 +38,3 @@ def findWord(input_vector):
         predicted_sentence = predicted_sentence[:-1]
         most_similar_words.append(predicted_sentence)
     return most_similar_words
-
-def remove_punctuation(input_string):
-    # Create a translation table to map punctuation characters to None
-    translator = str.maketrans('', '', string.punctuation)
-    
-    # Remove punctuation from the input string
-    cleaned_string = input_string.translate(translator)
-    
-    return cleaned_string

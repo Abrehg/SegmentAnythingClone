@@ -1,12 +1,12 @@
+#Formats input image to work with tensorflow model
+
+#Import packages for processing
 import tensorflow as tf
-import matplotlib.pyplot as plt
-import optuna
-from tensorflow import keras as keras
-from keras import layers as tfl
 import numpy as np
 from patchModel import EncGen
 from tf_encodings import add_positional_encoding
 
+#Define hyperparameters
 percentRemove = 75
 Encoder = EncGen((16, 16, 3))
 Encoder.load_weights('/Users/adityaasuratkal/Downloads/GitHub/SegmentAnythingClone/patches_weights.h5')

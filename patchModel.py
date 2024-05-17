@@ -1,3 +1,5 @@
+#Defined patch model for 16x16 patch
+
 import tensorflow as tf
 
 def EncGen(input_shape):
