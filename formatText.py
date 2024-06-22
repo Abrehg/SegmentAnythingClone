@@ -8,6 +8,9 @@ import numpy as np
 glove_file = '/Users/adityaasuratkal/Downloads/glove.840B.300d.txt'
 word_vectors = KeyedVectors.load_word2vec_format(glove_file, binary=False, no_header=True)
 
+# Compute the mean vector (UNK)
+mean_vector = np.mean(word_vectors.vectors, axis=0)
+
 #Remove punctuation for easier input
 def remove_punctuation(input_string):
     # Create a translation table to map punctuation characters to None
@@ -22,9 +25,25 @@ def remove_punctuation(input_string):
 def formatText(text):
     text = remove_punctuation(text)
     slicedInput = text.split()
-    embeddings = [word_vectors[word] for word in slicedInput if word in word_vectors]
+    embeddings = []
+    for word in slicedInput:
+        if word in word_vectors:
+            embeddings.append(word_vectors[word])
+        else:
+            embeddings.append(mean_vector)
     embeddings = np.array(embeddings)
-    embeddings = np.expand_dims(embeddings, axis=0)
+    #embeddings = np.expand_dims(embeddings, axis=0)
+    return embeddings
+
+def formatTextOneWord(word):
+    if word in word_vectors:
+        print("Known val appended")
+        embeddings = word_vectors[word]
+    else:
+        print("UNK")
+        embeddings = mean_vector
+    #embeddings = np.array(embeddings)
+    #embeddings = np.expand_dims(embeddings, axis=0)
     return embeddings
 
 #Find a word when given a vector
