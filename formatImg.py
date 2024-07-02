@@ -50,7 +50,13 @@ def formatImg(img):
     return finalEmbeddings, MAEencodings
 
 #takes filepath as string and turns image into tensor
-def formatTensorFromPath(Filepath):
+def formatImageTensorFromPath(Filepath):
     img = tf.io.read_file(Filepath)
     tensor = tf.io.decode_image(img, channels=3, dtype=tf.dtypes.uint8)
+    return tensor
+
+#takes filepath as string and turns mask into tensor
+def formatMaskTensorFromPath(Filepath):
+    img = tf.io.read_file(Filepath)
+    tensor = tf.io.decode_image(img, channels=1, dtype=tf.dtypes.uint8)
     return tensor

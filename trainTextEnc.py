@@ -10,7 +10,7 @@ import numpy as np
 from formatText import mean_vector
 
 #Define your model
-textEncodings_input = keras.Input((None, 300), name="text_encodings")
+textEncodings_input = keras.Input((None, 300), ragged = True, name="text_encodings")
 textEnc = textEncoder()
 Q = textEnc(textEncodings_input)
 
@@ -19,15 +19,24 @@ X = tfl.Dense(units=150, activation="relu")(Q)
 X = tfl.Dense(units=75, activation="relu")(X)
 X = tfl.Dense(units=25, activation="relu")(X)
 X = tfl.Dense(units=10, activation="relu")(X)
-out = tfl.Dense(units=1, activation="relu")(X)
+X = tfl.Dense(units=1, activation="relu")(X)
+out = tf.squeeze(X, axis=-1)
 
 #Define final model to be trained
 combinedModel = keras.Model(inputs=textEncodings_input, outputs=out)
 
+combinedModel.summary()
+
+# Define loss
+def sparse_categorical_crossentropy_per_sample(y_true, y_pred):
+    # Assuming y_true and y_pred are ragged tensors
+    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y_true.flat_values, logits=y_pred.flat_values)
+    return tf.reduce_mean(loss)
+
 #Compile model
 combinedModel.compile(
     optimizer=keras.optimizers.legacy.Adam(learning_rate=0.001),
-    loss='sparse_categorical_crossentropy',
+    loss= sparse_categorical_crossentropy_per_sample,
     metrics=['accuracy']
 )
 
@@ -85,28 +94,17 @@ def preprocess_example(tokens, pos_tags):
     embeddings = []
     i = 0
     for token in tokens:
-        print(token)
-        print(pos_tags[i])
-        print(i)
-        print(len(pos_tags))
         embeddings.append(formatTextOneWord(token))
         if np.array_equal(embeddings[-1], mean_vector):
-            print("Re proccessing")
             i = i - 1
             embeddings.pop()
             split = splitWord(token)
             for word in split:
                 if i == len(pos_tags):
                     break
-                print(word)
-                print(pos_tags[i])
-                print(i)
-                print(len(pos_tags))
                 embeddings.append(formatTextOneWord(word))
                 i = i + 1
         i = i + 1
-    print(tf.shape(embeddings))
-    print(tf.shape(pos_tags))
     embeddings = tf.convert_to_tensor(embeddings, dtype = tf.float32)
     pos_tags = tf.convert_to_tensor(pos_tags, dtype = tf.int64)
     return embeddings, pos_tags
@@ -125,45 +123,53 @@ def tf_preprocess_example(example):
         token_encodings, pos_tags = preprocess_example(testTokens, testPosTags)
     token_encodings.set_shape([None, 300])
     pos_tags.set_shape([None])
-    return token_encodings, pos_tags
+    return tf.RaggedTensor.from_tensor(token_encodings, dtype=tf.float32), tf.RaggedTensor.from_tensor(pos_tags, dtype=tf.int64)
 
 #Apply preprocessing to datasets
-trainingDataX = []
-trainingDataY = []
+def data_generator(dataset):
+    for entry in dataset:
+        yield tf_preprocess_example(entry)
 
-for entry in train:
-    print("Train Entry started")
-    X, Y = tf_preprocess_example(entry)
-    trainingDataX.append(X.numpy())
-    trainingDataY.append(Y.numpy())
+#Starting dataset compilation
+print("Starting dataset compilation")
+train_dataset = tf.data.Dataset.from_generator(
+    lambda: data_generator(train),
+    output_signature=(
+        tf.RaggedTensorSpec(shape=[None, 300], dtype=tf.float32),
+        tf.RaggedTensorSpec(shape=[None], dtype=tf.int64)
+    )
+)
 
-for entry in dev:
-    print("Dev Entry started")
-    X, Y = tf_preprocess_example(entry)
-    trainingDataX.append(X.numpy())
-    trainingDataY.append(Y.numpy())
+dev_dataset = tf.data.Dataset.from_generator(
+    lambda: data_generator(dev),
+    output_signature=(
+        tf.RaggedTensorSpec(shape=[None, 300], dtype=tf.float32),
+        tf.RaggedTensorSpec(shape=[None], dtype=tf.int64)
+    )
+)
 
-for entry in test:
-    print("Test Entry started")
-    X, Y = tf_preprocess_example(entry)
-    trainingDataX.append(X.numpy())
-    trainingDataY.append(Y.numpy())
+test_dataset = tf.data.Dataset.from_generator(
+    lambda: data_generator(test),
+    output_signature=(
+        tf.RaggedTensorSpec(shape=[None, 300], dtype=tf.float32),
+        tf.RaggedTensorSpec(shape=[None], dtype=tf.int64)
+    )
+)
+
+# Concatenate and shuffle the datasets
+combined_dataset = train_dataset.concatenate(dev_dataset).concatenate(test_dataset)
+shuffled_dataset = combined_dataset.shuffle(buffer_size=10000)
+BATCH_SIZE = 64
+# shuffled_dataset = shuffled_dataset.padded_batch(BATCH_SIZE, padded_shapes=([None, 300], [None]))
+# padded_shapes = ([None, 300], [None])
+# batched_dataset = shuffled_dataset.padded_batch(BATCH_SIZE, padded_shapes=padded_shapes)
 
 print("Training data complete")
 
-# Convert to numpy array for training step
-print("Starting processing training data")
-trainingDataX = tf.ragged.constant(trainingDataX)
-print("Training Data X compiled")
-trainingDataY = tf.ragged.constant(trainingDataY)
-print("Training Data Y compiled")
-print("Ragged tensors built")
-
 #Train the model
 EPOCHS = 10
-BATCH_SIZE = 64
-combinedModel.fit(x = trainingDataX, y = trainingDataY, epochs = EPOCHS, batch_size = BATCH_SIZE)
+combinedModel.fit(shuffled_dataset, epochs = EPOCHS, batch_size=BATCH_SIZE)
 print("Model fitted")
 
-#Save weights of text encoder model
-textEnc.save_weights('./txt_encoder_weights.h5')
+# #Save weights of text encoder model
+# textEnc.save_weights('./txt_encoder_weights.h5')

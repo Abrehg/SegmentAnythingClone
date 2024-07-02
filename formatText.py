@@ -5,7 +5,7 @@ import string
 import numpy as np
 
 #Load in GloVe file
-glove_file = '/Users/adityaasuratkal/Downloads/glove.840B.300d.txt'
+glove_file = './glove.840B.300d.txt'
 word_vectors = KeyedVectors.load_word2vec_format(glove_file, binary=False, no_header=True)
 
 # Compute the mean vector (UNK)
@@ -32,15 +32,12 @@ def formatText(text):
         else:
             embeddings.append(mean_vector)
     embeddings = np.array(embeddings)
-    #embeddings = np.expand_dims(embeddings, axis=0)
     return embeddings
 
 def formatTextOneWord(word):
     if word in word_vectors:
-        print("Known val appended")
         embeddings = word_vectors[word]
     else:
-        print("UNK")
         embeddings = mean_vector
     #embeddings = np.array(embeddings)
     #embeddings = np.expand_dims(embeddings, axis=0)
