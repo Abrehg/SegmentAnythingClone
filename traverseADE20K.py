@@ -10,7 +10,6 @@ from formatImg import formatImg
 from TextEncoder import textEncoder
 from formatText import formatText
 
-
 textEnc = textEncoder()
 textEnc.load_weights("./txt_encoder_weights.h5")
 
@@ -43,7 +42,6 @@ def findADE20KData(path):
                     data = json.load(json_file)
                     print("JSON file content:")
                     for i in range(len(data["annotation"]["object"])):
-                        #print(json.dumps(data["annotation"]["object"][i], indent=4))
                         name = data["annotation"]["object"][i]["name"]
                         temp = ""
                         index = 0
@@ -57,16 +55,19 @@ def findADE20KData(path):
                                 img, MAEenc = formatImg(imgTensor)
                                 img = tf.squeeze(img, axis=0)
                                 print(f"Img shape: {tf.shape(img)}")
+                                img = tf.RaggedTensor.from_tensor(img)
                                 maskPath = path + "/" + data["annotation"]["object"][i]["instance_mask"][data["annotation"]["object"][i]["instance_mask"].find("/")+1:]
                                 mask = formatMaskTensorFromPath(maskPath)
                                 print(f"Mask shape: {tf.shape(mask)}")
+                                mask = tf.RaggedTensor.from_tensor(mask)
                                 textFormatting = formatText(temp)
                                 textFormatting = tf.expand_dims(textFormatting, axis = 0)
                                 txt = textEnc(textFormatting)
                                 txt = tf.squeeze(txt, axis = 0)
                                 print(f"Txt shape: {tf.shape(txt)}")
+                                txt = tf.RaggedTensor.from_tensor(txt)
                                 temp = ""
-                                #yield {'img_encodings': img, 'text_encodings': txt}, mask
+                                yield {'img_encodings': img, 'text_encodings': txt}, mask
                             index = index + 1
                         if len(temp) != 0:
                             imgPath = path + "/" + data["annotation"]["filename"]
@@ -74,23 +75,24 @@ def findADE20KData(path):
                             img, MAEenc = formatImg(imgTensor)
                             img = tf.squeeze(img, axis = 0)
                             print(f"Img shape: {tf.shape(img)}")
+                            img = tf.RaggedTensor.from_tensor(img)
                             maskPath = path + "/" + data["annotation"]["object"][i]["instance_mask"][data["annotation"]["object"][i]["instance_mask"].find("/")+1:]
                             mask = formatMaskTensorFromPath(maskPath)
                             print(f"Mask shape: {tf.shape(mask)}")
+                            mask = tf.RaggedTensor.from_tensor(mask)
                             textFormatting = formatText(temp)
                             textFormatting = tf.expand_dims(textFormatting, axis = 0)
                             txt = textEnc(textFormatting)
                             txt = tf.squeeze(txt, axis = 0)
                             print(f"Txt shape: {tf.shape(txt)}")
+                            txt = tf.RaggedTensor.from_tensor(txt)
                             temp = ""
-                            #yield {'img_encodings': img, 'text_encodings': txt}, mask
+                            yield {'img_encodings': img, 'text_encodings': txt}, mask
             except Exception as e:
                 print(f"Error reading JSON file {item_path}: {e}")
             return
     
     return
-
-# findADE20KData(os.path.expanduser("/Users/adityaasuratkal/Downloads/Img_Data/ADE20K"))
 
 # Test function
 def ADE20K_generator():
@@ -100,10 +102,10 @@ def ADE20K_generator():
 # Define output signatures for the generator
 output_signature = (
     {
-        'img_encodings': tf.TensorSpec(shape=(None, None, 1024), dtype=tf.float32),
-        'text_encodings': tf.TensorSpec(shape=(None, 300), dtype=tf.float32)
+        'img_encodings': tf.RaggedTensorSpec(shape=(None, None, 1024), dtype=tf.float32),
+        'text_encodings': tf.RaggedTensorSpec(shape=(None, 300), dtype=tf.float32)
     },
-    tf.TensorSpec(shape=(None, None, 1), dtype=tf.int32)
+    tf.RaggedTensorSpec(shape=(None, None, 1), dtype=tf.int32)
 )
 
 # Create the dataset from the generator

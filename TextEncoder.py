@@ -25,10 +25,10 @@ def textEncoder():
         X = tfl.MultiHeadAttention(num_heads=16, key_dim=units, dropout=0.3)(dense_inputs, dense_inputs)
         X = tf.RaggedTensor.from_tensor(X, inputs.nested_row_lengths())
         
-        X = tf.add(X, inputs)
+        X = X + inputs
         X = tfl.LayerNormalization()(X)
         X = feedForwardNN(X)
-        X = tf.add(X, inputs)
+        X = X + inputs
         output = tfl.LayerNormalization()(X)
         return output
 
@@ -53,9 +53,9 @@ def positional_encoding(seq_len, d_model):
     i = tf.range(d_model, dtype=tf.float32)
     
     angles = 1 / tf.pow(10000.0, (2 * (i // 2)) / tf.cast(d_model, dtype=tf.float32))
-    angles = tf.reshape(angles, (1, -1))
+    angles = tf.reshape(angles, (1, d_model))
     angles = tf.multiply(position[:, tf.newaxis], angles)
-    angles = tf.concat([tf.sin(angles[:, 0::2]), tf.cos(angles[:, 1::2])], axis=-1)
+    angles = tf.concat([tf.math.sin(angles[:, 0::2]), tf.math.cos(angles[:, 1::2])], axis=-1)
     encodings = tf.expand_dims(angles, axis=0)
 
     return encodings
@@ -86,6 +86,6 @@ def add_positional_encodings(word_vectors):
     truncated_encodings = tf.RaggedTensor.from_tensor(truncated_encodings, lengths=row_lengths)
     
     # Add positional encodings to the word vectors
-    word_vectors_with_position = tf.ragged.map_flat_values(tf.add, word_vectors, truncated_encodings)
+    word_vectors_with_position = word_vectors + truncated_encodings
     
     return word_vectors_with_position

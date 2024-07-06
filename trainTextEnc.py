@@ -25,6 +25,10 @@ out = tf.squeeze(X, axis=-1)
 #Define final model to be trained
 combinedModel = keras.Model(inputs=textEncodings_input, outputs=out)
 
+print("Text encoder: ")
+textEnc.summary()
+
+print("Combined model:")
 combinedModel.summary()
 
 # Define loss
@@ -36,7 +40,7 @@ def sparse_categorical_crossentropy_per_sample(y_true, y_pred):
 #Compile model
 combinedModel.compile(
     optimizer=keras.optimizers.legacy.Adam(learning_rate=0.001),
-    loss= sparse_categorical_crossentropy_per_sample,
+    loss='sparse_categorical_crossentropy',
     metrics=['accuracy']
 )
 
@@ -132,43 +136,23 @@ def data_generator(dataset):
 
 #Starting dataset compilation
 print("Starting dataset compilation")
-train_dataset = tf.data.Dataset.from_generator(
-    lambda: data_generator(train),
-    output_signature=(
-        tf.RaggedTensorSpec(shape=[None, 300], dtype=tf.float32),
-        tf.RaggedTensorSpec(shape=[None], dtype=tf.int64)
-    )
-)
-
-dev_dataset = tf.data.Dataset.from_generator(
-    lambda: data_generator(dev),
-    output_signature=(
-        tf.RaggedTensorSpec(shape=[None, 300], dtype=tf.float32),
-        tf.RaggedTensorSpec(shape=[None], dtype=tf.int64)
-    )
-)
-
-test_dataset = tf.data.Dataset.from_generator(
-    lambda: data_generator(test),
-    output_signature=(
-        tf.RaggedTensorSpec(shape=[None, 300], dtype=tf.float32),
-        tf.RaggedTensorSpec(shape=[None], dtype=tf.int64)
-    )
-)
-
-# Concatenate and shuffle the datasets
-combined_dataset = train_dataset.concatenate(dev_dataset).concatenate(test_dataset)
-shuffled_dataset = combined_dataset.shuffle(buffer_size=10000)
 BATCH_SIZE = 64
-# shuffled_dataset = shuffled_dataset.padded_batch(BATCH_SIZE, padded_shapes=([None, 300], [None]))
-# padded_shapes = ([None, 300], [None])
-# batched_dataset = shuffled_dataset.padded_batch(BATCH_SIZE, padded_shapes=padded_shapes)
+combined = train.concatenate(dev).concatenate(test)
+shuffled = combined.shuffle(buffer_size=10000)
+
+dataset = tf.data.Dataset.from_generator(
+    lambda: data_generator(shuffled),
+    output_signature=(
+        tf.RaggedTensorSpec(shape=[None, 300], dtype=tf.float32),
+        tf.RaggedTensorSpec(shape=[None], dtype=tf.int64)
+    )
+)
 
 print("Training data complete")
 
 #Train the model
 EPOCHS = 10
-combinedModel.fit(shuffled_dataset, epochs = EPOCHS, batch_size=BATCH_SIZE)
+combinedModel.fit(dataset, epochs = EPOCHS, batch_size=BATCH_SIZE)
 print("Model fitted")
 
 # #Save weights of text encoder model

@@ -1,7 +1,7 @@
 #Define basic Image Encoder
 
 import tensorflow as tf
-import keras as keras
+import keras
 from keras import layers as tfl
 
 def imgEncoder():

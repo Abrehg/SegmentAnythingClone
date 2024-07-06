@@ -16,12 +16,12 @@ textEnc = textEncoder()
 textEnc.load_weights("./txt_encoder_weights.h5")
 
 #input encoding of image (Transformer encoder + MAE)
-imgEncodings_input = keras.Input((None, None, 1024), name="img_encodings")
+imgEncodings_input = keras.Input((None, None, 1024), name="img_encodings", ragged = True)
 imgEnc = imgEncoder()
 X = imgEnc(imgEncodings_input)
 
 #input encoding of text (CLIP)
-Q = keras.Input((None, 300), name="text_encodings")
+Q = keras.Input((None, 300), name="text_encodings", ragged = True)
 
 #decode and return output mask
 masks = decoder(Q, X)
@@ -37,11 +37,11 @@ def custom_loss(y_true, y_pred):
     print(f"y_true shape: {tf.shape(y_true)}")
     print(f"y_pred shape: {tf.shape(y_pred)}")
 
-    heightTrue, widthTrue, extraTrue1, extraTrue2 = y_true.shape
-    heightPred, widthPred, extraPred1, extraPred2 = y_pred.shape
+    batchSizeTrue, heightTrue, widthTrue, finalDimTrue = y_true.shape
+    batchSizePred, heightPred, widthPred, finalDimPred = y_pred.shape
 
-    print(f"Y True shape: {heightTrue}, {widthTrue}, {extraTrue1}, {extraTrue2}")
-    print(f"Y Pred shape: {heightPred}, {widthPred}, {extraPred1}, {extraPred2}")
+    print(f"Y True shape: {batchSizeTrue}, {heightTrue}, {widthTrue}, {finalDimTrue}")
+    print(f"Y Pred shape: {batchSizePred}, {heightPred}, {widthPred}, {finalDimPred}")
 
     y_pred = tf.image.crop_to_bounding_box(y_pred, (heightPred-heightTrue)//2, (widthPred-widthTrue)//2, heightTrue, widthTrue)
     conditionYTrue = tf.math.greater(y_true, epsilonTensorTrue)
