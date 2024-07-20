@@ -67,7 +67,7 @@ def findADE20KData(path):
                                 print(f"Txt shape: {tf.shape(txt)}")
                                 txt = tf.RaggedTensor.from_tensor(txt)
                                 temp = ""
-                                yield {'img_encodings': img, 'text_encodings': txt}, mask
+                                yield {'input_4': img, 'input_5': txt}, mask
                             index = index + 1
                         if len(temp) != 0:
                             imgPath = path + "/" + data["annotation"]["filename"]
@@ -87,7 +87,7 @@ def findADE20KData(path):
                             print(f"Txt shape: {tf.shape(txt)}")
                             txt = tf.RaggedTensor.from_tensor(txt)
                             temp = ""
-                            yield {'img_encodings': img, 'text_encodings': txt}, mask
+                            yield {'input_6': img, 'input_7': txt}, mask
             except Exception as e:
                 print(f"Error reading JSON file {item_path}: {e}")
             return
@@ -102,103 +102,11 @@ def ADE20K_generator():
 # Define output signatures for the generator
 output_signature = (
     {
-        'img_encodings': tf.RaggedTensorSpec(shape=(None, None, 1024), dtype=tf.float32),
-        'text_encodings': tf.RaggedTensorSpec(shape=(None, 300), dtype=tf.float32)
+        'input_6': tf.RaggedTensorSpec(shape=(None, None, 1024), dtype=tf.float32),
+        'input_7': tf.RaggedTensorSpec(shape=(None, 300), dtype=tf.float32)
     },
     tf.RaggedTensorSpec(shape=(None, None, 1), dtype=tf.int32)
 )
 
 # Create the dataset from the generator
 ADE20K = tf.data.Dataset.from_generator(lambda: ADE20K_generator(), output_signature=output_signature)
-
-# # Old Version
-# def findADE20KData(path, img, txt, mask):
-#     # Check if the path is a directory
-#     if not os.path.isdir(path):
-#         print(f"{path} is not a valid directory.")
-#         return img, txt, mask
-
-#     # Get the list of all files and directories in the current path
-#     try:
-#         items = os.listdir(path)
-#     except PermissionError:
-#         print(f"Permission denied: {path}")
-#         return img, txt, mask
-
-#     # Loop through each item
-#     for item in items:
-#         item_path = os.path.join(path, item)
-
-#         # If the item is a directory, recursively call find_json_file
-#         if os.path.isdir(item_path) and item_path != "/Users/adityaasuratkal/Downloads/Img_Data/ADE20K/ADE20K_2021_17_01":
-#             img, txt, mask = findADE20KData(item_path, img, txt, mask)
-#         # If the item is a .json file, print the path and stop further traversal
-#         elif item.endswith('.json'):
-#             print(f"Found JSON file: {item_path}")
-#             try:
-#                 with open(item_path, 'r') as json_file:
-#                     data = json.load(json_file)
-#                     print("JSON file content:")
-#                     for i in range(len(data["annotation"]["object"])):
-#                         #print(json.dumps(data["annotation"]["object"][i], indent=4))
-#                         name = data["annotation"]["object"][i]["name"]
-#                         temp = ""
-#                         index = 0
-#                         while index < len(name):
-#                             if name[index] != ",":
-#                                 temp = temp + name[index]
-#                             else:
-#                                 index = index + 1
-#                                 imgPath = path + "/" + data["annotation"]["filename"]
-#                                 print(imgPath)
-#                                 print("Starting formatting image from data path")
-#                                 imgTensor = formatImageTensorFromPath(imgPath)
-#                                 print("Converting image into embedding")
-#                                 imgEnc, MAEEnc = formatImg(imgTensor)
-#                                 img.append(imgEnc)
-#                                 maskPath = path + "/" + data["annotation"]["object"][i]["instance_mask"][data["annotation"]["object"][i]["instance_mask"].find("/")+1:]
-#                                 print(maskPath)
-#                                 print("Starting formatting mask from data path")
-#                                 mask.append(formatMaskTensorFromPath(maskPath))
-#                                 print(temp)
-#                                 print("Starting formatting text to GloVe encodings")
-#                                 textFormatting = formatText(temp)
-#                                 print("Converting GloVe encodings into proper embeddings")
-#                                 textFormatting = tf.expand_dims(textFormatting, axis = 0)
-#                                 print(f"Text to GloVe shape: {tf.shape(textFormatting)}")
-#                                 print(f"GloVe to Encoding shape: {tf.shape(textEnc(textFormatting))}")
-#                                 txt.append(textEnc(textFormatting))
-#                                 temp = ""
-#                             index = index + 1
-#                         if len(temp) != 0:
-#                             imgPath = path + "/" + data["annotation"]["filename"]
-#                             print(imgPath)
-#                             print("Starting formatting image from data path")
-#                             imgTensor = formatImageTensorFromPath(imgPath)
-#                             print("Converting image into embedding")
-#                             imgEnc, MAEEnc = formatImg(imgTensor)
-#                             img.append(imgEnc)
-#                             maskPath = path + "/" + data["annotation"]["object"][i]["instance_mask"][data["annotation"]["object"][i]["instance_mask"].find("/")+1:]
-#                             print(maskPath)
-#                             print("Starting formatting mask from data path")
-#                             mask.append(formatMaskTensorFromPath(maskPath))
-#                             print(temp)
-#                             print("Starting formatting text to GloVe encodings")
-#                             textFormatting = formatText(temp)
-#                             print("Converting GloVe encodings into proper embeddings")
-#                             textFormatting = tf.expand_dims(textFormatting, axis = 0)
-#                             print(f"Text to GloVe shape: {tf.shape(textFormatting)}")
-#                             print(f"GloVe to Encoding shape: {tf.shape(textEnc(textFormatting))}")
-#                             txt.append(textEnc(textFormatting))
-#                             temp = ""
-#             except Exception as e:
-#                 print(f"Error reading JSON file {item_path}: {e}")
-#             return img, txt, mask
-    
-#     return img, txt, mask
-
-# home_directory = os.path.expanduser("/Users/adityaasuratkal/Downloads/Img_Data/ADE20K")
-# imgEncs = []
-# txtEncs = []
-# maskEncs = []
-# imgEncs, txtEncs, maskEncs = findADE20KData(home_directory, imgEncs, txtEncs, maskEncs)

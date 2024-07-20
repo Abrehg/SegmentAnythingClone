@@ -12,37 +12,46 @@ def textEncoder():
     encLayers = 3
     NN_Layers = 5
 
+    # Feedforward network
     def feedForwardNN(inputs):
         X = inputs
         for j in range(NN_Layers):
             X = tfl.Dense(units, activation='relu')(X)
         return X
 
+    # Encoder layer function
     def encoderLayer(inputs):
-        # Convert ragged tensor to dense tensor
-        dense_inputs = inputs.to_tensor()
-
-        X = tfl.MultiHeadAttention(num_heads=16, key_dim=units, dropout=0.3)(dense_inputs, dense_inputs)
-        X = tf.RaggedTensor.from_tensor(X, inputs.nested_row_lengths())
+        # Multi-head attention
+        attention_output = tfl.MultiHeadAttention(num_heads=16, key_dim=units, dropout=0.3)(inputs, inputs)
         
-        X = X + inputs
-        X = tfl.LayerNormalization()(X)
-        X = feedForwardNN(X)
-        X = X + inputs
-        output = tfl.LayerNormalization()(X)
+        # Residual connection and normalization
+        X = tfl.LayerNormalization()(inputs + attention_output)
+        
+        # Feedforward network
+        feedforward_output = feedForwardNN(X)
+        
+        # Residual connection and normalization
+        output = tfl.LayerNormalization()(X + feedforward_output)
+        
         return output
 
+    # Function to encode input_tensor through multiple encoder layers
     def encode(input_tensor):
         X = input_tensor
         for i in range(encLayers):
             X = encoderLayer(X)
         return X
 
+    # Define input layer with ragged=True for ragged tensor support
     input_embeddings = keras.Input(shape=(None, 300), ragged=True)
 
+    # Add positional encodings to input embeddings
     X = add_positional_encodings(input_embeddings)
+
+    # Encode the input embeddings
     encoded_output = encode(X)
 
+    # Define the Keras model
     model = keras.Model(inputs=input_embeddings, outputs=encoded_output)
 
     return model
@@ -61,31 +70,18 @@ def positional_encoding(seq_len, d_model):
     return encodings
 
 def add_positional_encodings(word_vectors):
-    # Get sequence lengths for each row
-    row_lengths = word_vectors.row_lengths(axis=1)
-    max_seq_length = tf.reduce_max(row_lengths)
-    d_model = tf.shape(word_vectors.values)[1]
-    
-    # Create positional encodings for the maximum sequence length
-    positional_encodings = positional_encoding(max_seq_length, d_model)
-    
-    # Expand positional encodings to match batch size
-    positional_encodings = tf.tile(positional_encodings, [tf.shape(row_lengths)[0], 1, 1])
-    
-    # Create a mask for truncating the positional encodings to the actual sequence lengths
-    mask = tf.sequence_mask(row_lengths, max_seq_length)
-    
-    # Convert mask to a 3D tensor
-    mask = tf.cast(mask, dtype=tf.float32)
-    mask = tf.expand_dims(mask, axis=-1)
-    
-    # Apply the mask to the positional encodings
-    truncated_encodings = positional_encodings * mask
-    
-    # Convert the truncated encodings to a ragged tensor
-    truncated_encodings = tf.RaggedTensor.from_tensor(truncated_encodings, lengths=row_lengths)
-    
-    # Add positional encodings to the word vectors
-    word_vectors_with_position = word_vectors + truncated_encodings
-    
+    # Convert to dense tensor if necessary
+    if isinstance(word_vectors, tf.RaggedTensor):
+        word_vectors = word_vectors.to_tensor()
+
+    # Get sequence length and model dimension
+    seq_len = tf.shape(word_vectors)[-2]
+    d_model = tf.shape(word_vectors)[-1]
+
+    # Generate positional encodings
+    positional_encodings = positional_encoding(seq_len, d_model)
+
+    # Add positional encodings to word_vectors
+    word_vectors_with_position = word_vectors + positional_encodings
+
     return word_vectors_with_position
