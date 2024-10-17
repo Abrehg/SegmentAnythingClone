@@ -46,7 +46,7 @@ def textEncoder():
     input_embeddings = keras.Input(shape=(None, 300), ragged=True)
 
     # Add positional encodings to input embeddings
-    X = add_positional_encodings(input_embeddings)
+    X = tfl.Lambda(add_positional_encodings)(input_embeddings)
 
     # Encode the input embeddings
     encoded_output = encode(X)
@@ -70,8 +70,10 @@ def positional_encoding(seq_len, d_model):
     return encodings
 
 def add_positional_encodings(word_vectors):
-    # Convert to dense tensor if necessary
-    if isinstance(word_vectors, tf.RaggedTensor):
+    # Handle RaggedTensor by converting to dense tensor
+    is_ragged = isinstance(word_vectors, tf.RaggedTensor)
+    if is_ragged:
+        lengths = word_vectors.row_lengths()
         word_vectors = word_vectors.to_tensor()
 
     # Get sequence length and model dimension
@@ -81,7 +83,14 @@ def add_positional_encodings(word_vectors):
     # Generate positional encodings
     positional_encodings = positional_encoding(seq_len, d_model)
 
+    # Adjust positional encodings to match the batch size
+    positional_encodings = tf.tile(positional_encodings, [tf.shape(word_vectors)[0], 1, 1])
+
     # Add positional encodings to word_vectors
     word_vectors_with_position = word_vectors + positional_encodings
+
+    # Convert back to RaggedTensor if input was RaggedTensor
+    if is_ragged:
+        word_vectors_with_position = tf.RaggedTensor.from_tensor(word_vectors_with_position, lengths=lengths)
 
     return word_vectors_with_position

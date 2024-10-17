@@ -14,6 +14,13 @@ The other encoder encodes the text by converting each string into a vector of ve
 
 Finally, a decoder loosely based on the standard transformer decoder takes both encodings and outputs a mask of similar size to the input image with pixel values between 0 and 1 to show where the masked object is
 
+## Dependancies
+
+This model uses the following dependancies:
+- conll2003 dataset to train the text encoder, 
+- GloVe embeddings in the form 840B words with 300d for text to vec (downloadable from https://nlp.stanford.edu/projects/glove/)
+- ADE20K dataset to train main model
+
 ## State of the project
 
 Basic architecture developed, just need to train the model

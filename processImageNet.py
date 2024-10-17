@@ -5,7 +5,7 @@ import os
 import h5py
 import gc
 from formatImg import formatImg
-from formatImg import formatTensorFromPath
+from formatImg import formatImageTensorFromPath
 import multiprocessing
 
 #image_folder -> path in string form to imagenet 2010 dataset
@@ -79,21 +79,21 @@ def process_image(image_path):
         mainFolderPath = mainFolderPath + mainFolder[j]
     data_folder = os.path.join(mainFolderPath, 'data')
     if imgFolder == 'train':
-        finalEmbeddings, other, other = formatImg(formatTensorFromPath(image_path))
+        finalEmbeddings, other, other = formatImg(formatImageTensorFromPath(image_path))
         raw_label = os.path.basename(image_path).split('.')[0][1:]
         i = raw_label.find("_")
         class_label = int(raw_label[(i+1):])
         one_hot_label = tf.one_hot(class_label, depth=1000)
     elif imgFolder == 'val':
         labelPath = os.path.join(data_folder, 'ILSVRC2010_validation_ground_truth.txt')
-        finalEmbeddings, other, other = formatImg(formatTensorFromPath(image_path))
+        finalEmbeddings, other, other = formatImg(formatImageTensorFromPath(image_path))
         imgIndex = int(os.path.basename(path).split('.')[0].split("_")[-1])
         label_list = read_file_as_list(labelPath)
         class_label = label_list[imgIndex]
         one_hot_label = tf.one_hot(class_label, depth=1000)
     elif imgFolder == 'test':
         labelPath = os.path.join(data_folder, 'ILSVRC2010_testing_ground_truth.txt')
-        finalEmbeddings, other, other = formatImg(formatTensorFromPath(image_path))
+        finalEmbeddings, other, other = formatImg(formatImageTensorFromPath(image_path))
         imgIndex = int(os.path.basename(path).split('.')[0].split("_")[-1])
         label_list = read_file_as_list(labelPath)
         class_label = label_list[imgIndex]
